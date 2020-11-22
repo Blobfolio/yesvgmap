@@ -1,0 +1,34 @@
+.TH "YESVGMAP" "1" "November 2020" "Yesvgmap v0.0.1" "User Commands"
+.SH NAME
+Yesvgmap \- Manual page for yesvgmap v0.0.1.
+.SH DESCRIPTION
+Yesvgmap is a very simple CLI for SVG map building.
+.SS USAGE:
+.TP
+yesvgmap [FLAGS] [OPTIONS] <SVG(s)…>
+.SS FLAGS:
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help information.
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Print application version.
+.SS OPTIONS:
+.TP
+\fB\-l\fR, \fB\-\-list\fR <FILE>
+Read file paths from this text file.
+.TP
+\fB\-\-map\-class\fR <CLASS>
+A class attribute value to assign to the map itself. [default: ]
+.TP
+\fB\-\-map\-id\fR <ID>
+An ID attribute value to assign to the map itself. [default: ]
+.TP
+\fB\-o\fR, \fB\-\-output\fR <FILE>
+A file path to save the generated map to. If not specified, the map will print to STDOUT.
+.TP
+\fB\-p\fR, \fB\-\-prefix\fR <PREFIX>
+Symbols will be assigned the ID 'prefix\-basename'. [default: icon]
+.SS <SVG(S)…>:
+.TP
+Any number of files and directories to crawl and crunch.

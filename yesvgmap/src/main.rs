@@ -80,7 +80,7 @@ fn main() {
 		.with_ext(b".svg")
 		.with_paths(args.args())
 		.build()
-		.drain(..)
+		.iter()
 		.filter_map(|p| svg_to_symbol(p, &prefix))
 		.collect();
 
@@ -121,8 +121,8 @@ fn main() {
 /// raw file contents. If that works, it then looks to see if it can find or
 /// calculate a viewbox value for it. Then it returns everything as a
 /// `<symbol>...</symbol>` for later map embedding.
-fn svg_to_symbol(path: PathBuf, prefix: &str) -> Option<String> {
-	if let Some((svg, stem)) = std::fs::read_to_string(&path)
+fn svg_to_symbol(path: &PathBuf, prefix: &str) -> Option<String> {
+	if let Some((svg, stem)) = std::fs::read_to_string(path)
 		.ok()
 		.zip(path.file_stem().and_then(OsStr::to_str))
 	{

@@ -130,7 +130,7 @@ fn svg_to_symbol(path: &PathBuf, prefix: &str) -> Option<String> {
 			return Some(
 				if let Some(vb) = svg_viewbox(&svg[open.start..open.end]) {
 					format!(
-						r#"<symbol id="{}-{}" viewbox="{}">{}</symbol>"#,
+						r#"<symbol id="{}-{}" viewBox="{}">{}</symbol>"#,
 						prefix,
 						stem,
 						vb,

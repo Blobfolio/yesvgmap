@@ -1,8 +1,8 @@
-.TH "YESVGMAP" "1" "November 2020" "Yesvgmap v0.0.2" "User Commands"
+.TH "YESVGMAP" "1" "November 2020" "Yesvgmap v0.0.3" "User Commands"
 .SH NAME
-Yesvgmap \- Manual page for yesvgmap v0.0.2.
+Yesvgmap \- Manual page for yesvgmap v0.0.3.
 .SH DESCRIPTION
-Yesvgmap is a very simple CLI for SVG map building.
+Yesvgmap is a CLI tool for building SVG sprite maps from individual SVG images.
 .SS USAGE:
 .TP
 yesvgmap [FLAGS] [OPTIONS] <SVG(s)…>
@@ -10,6 +10,12 @@ yesvgmap [FLAGS] [OPTIONS] <SVG(s)…>
 .TP
 \fB\-h\fR, \fB\-\-help\fR
 Print help information.
+.TP
+\fB\-\-hidden\fR
+Hide with the 'hidden' attribute. Overrides \-\-offscreen if both are set.
+.TP
+\fB\-\-offscreen\fR
+Hide by placing the element offscreen with inline styles.
 .TP
 \fB\-V\fR, \fB\-\-version\fR
 Print application version.

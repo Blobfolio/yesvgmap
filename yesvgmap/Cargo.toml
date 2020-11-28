@@ -1,10 +1,10 @@
 [package]
 name = "yesvgmap"
-version = "0.0.2"
+version = "0.0.3"
 license = "WTFPL"
 authors = ["Josh Stoik <josh@blobfolio.com>"]
 edition = "2018"
-description = "Yesvgmap is a very simple CLI for SVG map building."
+description = "Yesvgmap is a CLI tool for building SVG sprite maps from individual SVG images."
 repository = "https://github.com/Blobfolio/yesvgmap"
 publish = false
 
@@ -30,7 +30,14 @@ man-dir = "../release/man"
 short = "-h"
 long = "--help"
 description = "Print help information."
-subcommands = [ "", "sub" ]
+
+[[package.metadata.bashman.switches]]
+long = "--hidden"
+description = "Hide with the 'hidden' attribute. Overrides --offscreen if both are set."
+
+[[package.metadata.bashman.switches]]
+long = "--offscreen"
+description = "Hide by placing the element offscreen with inline styles."
 
 [[package.metadata.bashman.switches]]
 short = "-V"

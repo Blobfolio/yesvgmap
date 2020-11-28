@@ -1,10 +1,10 @@
 [package]
 name = "yesvgmap"
-version = "0.0.2"
+version = "0.0.3"
 license = "WTFPL"
 authors = ["Josh Stoik <josh@blobfolio.com>"]
 edition = "2018"
-description = "Yesvgmap is a very simple CLI for SVG map building."
+description = "Yesvgmap is a CLI tool for building SVG sprite maps from individual SVG images."
 repository = "https://github.com/Blobfolio/yesvgmap"
 publish = false
 

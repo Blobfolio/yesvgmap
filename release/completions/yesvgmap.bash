@@ -9,6 +9,8 @@ _basher___yesvgmap() {
 		opts+=("-h")
 		opts+=("--help")
 	fi
+	[[ " ${COMP_LINE} " =~ " --hidden " ]] || opts+=("--hidden")
+	[[ " ${COMP_LINE} " =~ " --offscreen " ]] || opts+=("--offscreen")
 	if [[ ! " ${COMP_LINE} " =~ " -V " ]] && [[ ! " ${COMP_LINE} " =~ " --version " ]]; then
 		opts+=("-V")
 		opts+=("--version")

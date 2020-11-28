@@ -30,7 +30,14 @@ man-dir = "../release/man"
 short = "-h"
 long = "--help"
 description = "Print help information."
-subcommands = [ "", "sub" ]
+
+[[package.metadata.bashman.switches]]
+long = "--hidden"
+description = "Hide with the 'hidden' attribute. Overrides --offscreen if both are set."
+
+[[package.metadata.bashman.switches]]
+long = "--offscreen"
+description = "Hide by placing the element offscreen with inline styles."
 
 [[package.metadata.bashman.switches]]
 short = "-V"

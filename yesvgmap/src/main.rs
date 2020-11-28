@@ -62,20 +62,27 @@ fn main() {
 	let prefix: String = args.option2("-p", "--prefix").unwrap_or("i").to_string();
 
 	// Start putting together the map's opening tag.
-	let mut map: String = String::from(r#"<svg xmlns="http://www.w3.org/2000/svg" aria-hidden"#);
-	if let Some(c) = args.option("--map-class") {
-		map.push_str(r#" class=""#);
-		map.push_str(c);
-		map.push('"');
-	}
-	else {
-		map.push_str(r#" style="position: fixed; top: 0; left: -100px; width: 1px; height: 1px; overflow: hidden;""#)
-	}
+	let mut map: String = String::from(r#"<svg xmlns="http://www.w3.org/2000/svg" aria-hidden=true"#);
+
 	if let Some(i) = args.option("--map-id") {
 		map.push_str(r#" id=""#);
 		map.push_str(i);
 		map.push('"');
 	}
+
+	if let Some(c) = args.option("--map-class") {
+		map.push_str(r#" class=""#);
+		map.push_str(c);
+		map.push('"');
+	}
+
+	if args.switch("--hidden") {
+		map.push_str(" hidden");
+	}
+	else if args.switch("--offscreen") {
+		map.push_str(r#" style="position:fixed;top:0;left:-100px;width:1px;height:1px;overflow:hidden;""#);
+	}
+
 	map.push('>');
 
 	// Run through the files.
@@ -263,6 +270,10 @@ USAGE:
 
 FLAGS:
 	-h, --help                  Prints help information.
+	    --hidden                Hide with the "hidden" attribute. Overrides
+	                            --offscreen if both are set.
+	    --offscreen             Hide by placing the element offscreen with inline
+	                            styles.
 	-V, --version               Prints version information.
 
 OPTIONS:

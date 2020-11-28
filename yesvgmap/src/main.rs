@@ -266,15 +266,15 @@ fn helper(_: Option<&str>) {
                          \_\
 
 USAGE:
-	yesvgmap [FLAGS] [OPTIONS] <PATH(S)>
+    yesvgmap [FLAGS] [OPTIONS] <PATH(S)>
 
 FLAGS:
-	-h, --help                  Prints help information.
-	    --hidden                Hide with the "hidden" attribute. Overrides
-	                            --offscreen if both are set.
-	    --offscreen             Hide by placing the element offscreen with inline
-	                            styles.
-	-V, --version               Prints version information.
+    -h, --help                  Prints help information.
+        --hidden                Hide with the "hidden" attribute. Overrides
+                                --offscreen if both are set.
+        --offscreen             Hide by placing the element offscreen with inline
+                                styles.
+    -V, --version               Prints version information.
 
 OPTIONS:
     -l, --list <FILE>           Read file paths from this list.

@@ -145,25 +145,22 @@ fn svg_to_symbol(path: &PathBuf, prefix: &str) -> Option<String> {
 		.zip(path.file_stem().and_then(OsStr::to_str))
 	{
 		if let Some((open, close)) = svg_bounds(&svg) {
-			return Some(
-				if let Some(vb) = svg_viewbox(&svg[open.start..open.end]) {
-					format!(
-						r#"<symbol id="{}-{}" viewBox="{}">{}</symbol>"#,
-						prefix,
-						stem,
-						vb,
-						&svg[open.end..close.start]
-					)
-				}
-				else {
-					format!(
-						r#"<symbol id="{}-{}">{}</symbol>"#,
-						prefix,
-						stem,
-						&svg[open.end..close.start]
-					)
-				}
-			);
+			if let Some(vb) = svg_viewbox(&svg[open.start..open.end]) {
+				return Some(format!(
+					r#"<symbol id="{}-{}" viewBox="{}">{}</symbol>"#,
+					prefix,
+					stem,
+					vb,
+					&svg[open.end..close.start]
+				));
+			}
+
+			Msg::new(
+				MsgKind::Warning,
+				format!("SVG has missing or unsupported viewBox: {:?}", path)
+			)
+				.with_newline(true)
+				.eprint();
 		}
 	}
 
@@ -191,7 +188,7 @@ fn svg_bounds(raw: &str) -> Option<(Range<usize>, Range<usize>)> {
 /// Parse the tag attributes, returning a viewbox if possible.
 fn svg_viewbox(raw: &str) -> Option<Cow<str>> {
 	lazy_static::lazy_static! {
-		static ref VB: Regex = Regex::new(r#"(?i)viewbox\s*=\s*('|")([\d. ]+\s+[\d. ]+\s+[\d. ]+\s+[\d. ]+)('|")"#).unwrap();
+		static ref VB: Regex = Regex::new(r#"(?i)viewbox\s*=\s*('|")(0 0 [\d. ]+ [\d. ]+)('|")"#).unwrap();
 		static ref WH: Regex = Regex::new(r#"(?i)(?P<key>(width|height))\s*=\s*('|")?(?P<value>[a-z\d. ]+)('|")?"#).unwrap();
 	}
 

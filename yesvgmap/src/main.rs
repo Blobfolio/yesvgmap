@@ -32,7 +32,10 @@ use fyi_menu::{
 	Argue,
 	FLAG_REQUIRED,
 };
-use fyi_msg::MsgKind;
+use fyi_msg::{
+	Msg,
+	MsgKind,
+};
 use fyi_witcher::Witcher;
 use regex::Regex;
 use std::{
@@ -48,8 +51,8 @@ use std::{
 /// Main.
 fn main() {
 	// Parse CLI arguments.
-	let mut args = Argue::new(FLAG_REQUIRED)
-		.with_version(b"Yesvgmap", env!("CARGO_PKG_VERSION").as_bytes())
+	let args = Argue::new(FLAG_REQUIRED)
+		.with_version("Yesvgmap", env!("CARGO_PKG_VERSION"))
 		.with_help(helper)
 		.with_list();
 
@@ -95,7 +98,7 @@ fn main() {
 		.collect();
 
 	if guts.is_empty() {
-		die("No SVGs were found for the map.");
+		Msg::error("No SVGs were found for the map.").die(1);
 	}
 
 	guts.sort();
@@ -107,15 +110,20 @@ fn main() {
 		tempfile_fast::Sponge::new_for(&path)
 			.and_then(|mut file| file.write_all(map.as_bytes()).and_then(|_| file.commit()))
 			.unwrap_or_else(|_| {
-				die("Unable to save output file.");
+				Msg::error("Unable to save output file.").die(1);
 				unreachable!();
 			});
 
-		MsgKind::Success.into_msg(&format!(
-			"A sprite with {} images has been saved to {:?}",
-			guts.len(),
-			std::fs::canonicalize(&path).unwrap()
-		)).println();
+		Msg::new(
+			MsgKind::Success,
+			format!(
+				"A sprite with {} images has been saved to {:?}",
+				guts.len(),
+				std::fs::canonicalize(&path).unwrap()
+			)
+		)
+			.with_newline(true)
+			.print();
 	}
 	else {
 		let writer = std::io::stdout();
@@ -226,21 +234,10 @@ fn parse_attr_size(value: &str) -> Option<f64> {
 		.filter(|&x| x > 0.0)
 }
 
-/// # Error and Exit.
-///
-/// This prints a formatted error message and exists the program with a status
-/// code of `1`.
-pub fn die<S>(error: S)
-where S: AsRef<str> {
-	MsgKind::Error.into_msg(error.as_ref()).eprintln();
-	std::process::exit(1);
-}
-
 #[cold]
 /// Print Help.
 fn helper(_: Option<&str>) {
-	use fyi_msg::Msg;
-	Msg::from(format!(
+	Msg::plain(format!(
 		r#"
       .--.   _,
   .--;    \ /(_

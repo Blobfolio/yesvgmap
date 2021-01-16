@@ -628,7 +628,6 @@ limitations under the License.
 **Used By:**
 
 * [ahash 0.6.2](https://github.com/tkaitchuck/ahash)
-* [cfg-if 0.1.10](https://github.com/alexcrichton/cfg-if)
 * [cfg-if 1.0.0](https://github.com/alexcrichton/cfg-if)
 * [crossbeam-channel 0.5.0](https://github.com/crossbeam-rs/crossbeam)
 * [crossbeam-deque 0.8.0](https://github.com/crossbeam-rs/crossbeam)
@@ -645,7 +644,7 @@ limitations under the License.
 * [regex 1.4.3](https://github.com/rust-lang/regex)
 * [regex-syntax 0.6.22](https://github.com/rust-lang/regex)
 * [scopeguard 1.1.0](https://github.com/bluss/scopeguard)
-* [tempfile 3.1.0](https://github.com/Stebalien/tempfile)
+* [tempfile 3.2.0](https://github.com/Stebalien/tempfile)
 * [term_size 0.3.2](https://github.com/kbknapp/term_size-rs.git)
 * [thread_local 1.1.0](https://github.com/Amanieu/thread_local-rs)
 * [unicode-width 0.1.8](https://github.com/unicode-rs/unicode-width)
@@ -860,11 +859,10 @@ limitations under the License.
 
 **Used By:**
 
-* [getrandom 0.1.16](https://github.com/rust-random/getrandom)
 * [getrandom 0.2.1](https://github.com/rust-random/getrandom)
-* [rand 0.7.3](https://github.com/rust-random/rand)
-* [rand_chacha 0.2.2](https://github.com/rust-random/rand)
-* [rand_core 0.5.1](https://github.com/rust-random/rand)
+* [rand 0.8.2](https://github.com/rust-random/rand)
+* [rand_chacha 0.3.0](https://github.com/rust-random/rand)
+* [rand_core 0.6.1](https://github.com/rust-random/rand)
 
 
 ```
@@ -1623,10 +1621,11 @@ THE SOFTWARE.
 
 **Used By:**
 
-* [fyi_menu 0.5.0](https://github.com/Blobfolio/fyi)
-* [fyi_msg 0.5.0](https://github.com/Blobfolio/fyi)
-* [fyi_witcher 0.5.0](https://github.com/Blobfolio/fyi)
-* [yesvgmap 0.1.0](https://github.com/Blobfolio/yesvgmap)
+* [fyi_menu 0.5.2](https://github.com/Blobfolio/fyi)
+* [fyi_msg 0.5.2](https://github.com/Blobfolio/fyi)
+* [fyi_num 0.5.2](https://github.com/Blobfolio/fyi)
+* [fyi_witcher 0.5.2](https://github.com/Blobfolio/fyi)
+* [yesvgmap 0.1.1](https://github.com/Blobfolio/yesvgmap)
 
 
 ```

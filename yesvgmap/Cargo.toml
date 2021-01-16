@@ -85,12 +85,12 @@ tempfile-fast = "0.3.*"
 
 [dependencies.fyi_menu]
 git = "https://github.com/Blobfolio/fyi.git"
-tag = "v0.5.0"
+tag = "v0.5.2"
 
 [dependencies.fyi_msg]
 git = "https://github.com/Blobfolio/fyi.git"
-tag = "v0.5.0"
+tag = "v0.5.2"
 
 [dependencies.fyi_witcher]
 git = "https://github.com/Blobfolio/fyi.git"
-tag = "v0.5.0"
+tag = "v0.5.2"

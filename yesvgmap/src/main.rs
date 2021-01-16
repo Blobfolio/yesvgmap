@@ -62,7 +62,7 @@ fn main() {
 		.filter(|p| ! p.is_dir());
 
 	// The ID prefix.
-	let prefix: String = args.option2("-p", "--prefix").unwrap_or("i").to_string();
+	let prefix: &str = args.option2("-p", "--prefix").unwrap_or("i");
 
 	// Start putting together the map's opening tag.
 	let mut map: String = String::from(r#"<svg xmlns="http://www.w3.org/2000/svg" aria-hidden=true"#);
@@ -94,7 +94,7 @@ fn main() {
 		.with_paths(args.args())
 		.build()
 		.iter()
-		.filter_map(|p| svg_to_symbol(p, &prefix))
+		.filter_map(|p| svg_to_symbol(p, prefix))
 		.collect();
 
 	if guts.is_empty() {

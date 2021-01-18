@@ -282,7 +282,6 @@ OPTIONS:
 ARGS:
     <PATH(S)>...                One or more files or directories to crunch and
                                 crawl.
-
 "#
 	)
 }

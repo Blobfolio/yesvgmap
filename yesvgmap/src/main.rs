@@ -233,8 +233,8 @@ fn parse_attr_size(value: &str) -> Option<f64> {
 
 #[cold]
 /// Print Help.
-fn helper(_: Option<&str>) {
-	Msg::plain(format!(
+const fn helper() -> &'static str {
+	concat!(
 		r#"
       .--.   _,
   .--;    \ /(_
@@ -248,7 +248,7 @@ fn helper(_: Option<&str>) {
  '.       /`\   (   '._/
    `\   .;  |  . '.
      ).'  )/|      \
-     `    ` |  \|   |  {}{}{}
+     `    ` |  \|   |  "#, "\x1b[38;5;199mYesvgmap\x1b[0;38;5;69m v", env!("CARGO_PKG_VERSION"), "\x1b[0m", r#"
              \  |   |  SVG sprite generator.
               '.|   |
                  \  '\__
@@ -282,10 +282,6 @@ OPTIONS:
 ARGS:
     <PATH(S)>...                One or more files or directories to crunch and
                                 crawl.
-
-"#,
-		"\x1b[38;5;199mYesvgmap\x1b[0;38;5;69m v",
-		env!("CARGO_PKG_VERSION"),
-		"\x1b[0m",
-	)).print();
+"#
+	)
 }

@@ -30,7 +30,10 @@
 
 use fyi_menu::{
 	Argue,
+	ArgueError,
+	FLAG_HELP,
 	FLAG_REQUIRED,
+	FLAG_VERSION,
 };
 use fyi_msg::{
 	Msg,
@@ -43,6 +46,7 @@ use std::{
 	ffi::OsStr,
 	io::Write,
 	ops::Range,
+	os::unix::ffi::OsStrExt,
 	path::PathBuf,
 };
 
@@ -50,39 +54,56 @@ use std::{
 
 /// Main.
 fn main() {
+	match _main() {
+		Err(ArgueError::WantsVersion) => {
+			fyi_msg::plain!(concat!("Yesvgmap v", env!("CARGO_PKG_VERSION")));
+		},
+		Err(ArgueError::WantsHelp) => {
+			helper();
+		},
+		Err(e) => {
+			Msg::error(e).die(1);
+		},
+		Ok(_) => {},
+	}
+}
+
+#[inline]
+/// Actual main.
+fn _main() -> Result<(), ArgueError> {
 	// Parse CLI arguments.
-	let args = Argue::new(FLAG_REQUIRED)
-		.with_version("Yesvgmap", env!("CARGO_PKG_VERSION"))
-		.with_help(helper)
+	let args = Argue::new(FLAG_HELP | FLAG_REQUIRED | FLAG_VERSION)?
 		.with_list();
 
 	// Make sure the output path is defined before we do any hard work.
-	let out: Option<PathBuf> = args.option2("-o", "--output")
-		.map(PathBuf::from)
+	let out: Option<PathBuf> = args.option2(b"-o", b"--output")
+		.map(|x| PathBuf::from(OsStr::from_bytes(x)))
 		.filter(|p| ! p.is_dir());
 
 	// The ID prefix.
-	let prefix: &str = args.option2("-p", "--prefix").unwrap_or("i");
+	let prefix: &str = args.option2(b"-p", b"--prefix")
+		.and_then(|x| std::str::from_utf8(x).ok())
+		.unwrap_or("i");
 
 	// Start putting together the map's opening tag.
 	let mut map: String = String::from(r#"<svg xmlns="http://www.w3.org/2000/svg" aria-hidden=true"#);
 
-	if let Some(i) = args.option("--map-id") {
+	if let Some(i) = args.option(b"--map-id").and_then(|x| std::str::from_utf8(x).ok()) {
 		map.push_str(r#" id=""#);
 		map.push_str(i);
 		map.push('"');
 	}
 
-	if let Some(c) = args.option("--map-class") {
+	if let Some(c) = args.option(b"--map-class").and_then(|x| std::str::from_utf8(x).ok()) {
 		map.push_str(r#" class=""#);
 		map.push_str(c);
 		map.push('"');
 	}
 
-	if args.switch("--hidden") {
+	if args.switch(b"--hidden") {
 		map.push_str(" hidden");
 	}
-	else if args.switch("--offscreen") {
+	else if args.switch(b"--offscreen") {
 		map.push_str(r#" style="position:fixed;top:0;left:-100px;width:1px;height:1px;overflow:hidden;""#);
 	}
 
@@ -91,14 +112,14 @@ fn main() {
 	// Run through the files.
 	let mut guts: Vec<String> = Witcher::default()
 		.with_ext(b".svg")
-		.with_paths(args.args())
+		.with_paths(args.args().iter().map(|x| OsStr::from_bytes(x.as_ref())))
 		.build()
 		.iter()
 		.filter_map(|p| svg_to_symbol(p, prefix))
 		.collect();
 
 	if guts.is_empty() {
-		Msg::error("No SVGs were found for the map.").die(1);
+		return Err(ArgueError::Other("No SVGs were found for the map."));
 	}
 
 	guts.sort();
@@ -109,10 +130,7 @@ fn main() {
 	if let Some(path) = out {
 		tempfile_fast::Sponge::new_for(&path)
 			.and_then(|mut file| file.write_all(map.as_bytes()).and_then(|_| file.commit()))
-			.unwrap_or_else(|_| {
-				Msg::error("Unable to save output file.").die(1);
-				unreachable!();
-			});
+			.map_err(|_| ArgueError::Other("Unable to save output file."))?;
 
 		Msg::new(
 			MsgKind::Success,
@@ -131,6 +149,8 @@ fn main() {
 		let _ = handle.write_all(map.as_bytes())
 			.and_then(|_| handle.flush());
 	}
+
+	Ok(())
 }
 
 /// SVG to Symbol.
@@ -233,8 +253,8 @@ fn parse_attr_size(value: &str) -> Option<f64> {
 
 #[cold]
 /// Print Help.
-const fn helper() -> &'static str {
-	concat!(
+fn helper() {
+	fyi_msg::plain!(concat!(
 		r#"
       .--.   _,
   .--;    \ /(_
@@ -283,5 +303,5 @@ ARGS:
     <PATH(S)>...                One or more files or directories to crunch and
                                 crawl.
 "#
-	)
+	));
 }

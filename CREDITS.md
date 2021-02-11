@@ -415,7 +415,7 @@ limitations under the License.
 
 **Used By:**
 
-* [ahash 0.6.3](https://github.com/tkaitchuck/ahash)
+* [ahash 0.7.0](https://github.com/tkaitchuck/ahash)
 * [cfg-if 1.0.0](https://github.com/alexcrichton/cfg-if)
 * [crossbeam-channel 0.5.0](https://github.com/crossbeam-rs/crossbeam)
 * [crossbeam-deque 0.8.0](https://github.com/crossbeam-rs/crossbeam)
@@ -423,7 +423,7 @@ limitations under the License.
 * [crossbeam-utils 0.8.1](https://github.com/crossbeam-rs/crossbeam)
 * [either 1.6.1](https://github.com/bluss/either)
 * [lazy_static 1.4.0](https://github.com/rust-lang-nursery/lazy-static.rs)
-* [libc 0.2.82](https://github.com/rust-lang/libc)
+* [libc 0.2.86](https://github.com/rust-lang/libc)
 * [num-integer 0.1.44](https://github.com/rust-num/num-integer)
 * [num-traits 0.2.14](https://github.com/rust-num/num-traits)
 * [num_cpus 1.13.0](https://github.com/seanmonstar/num_cpus)
@@ -434,7 +434,7 @@ limitations under the License.
 * [regex-syntax 0.6.22](https://github.com/rust-lang/regex)
 * [scopeguard 1.1.0](https://github.com/bluss/scopeguard)
 * [tempfile 3.2.0](https://github.com/Stebalien/tempfile)
-* [thread_local 1.1.2](https://github.com/Amanieu/thread_local-rs)
+* [thread_local 1.1.3](https://github.com/Amanieu/thread_local-rs)
 
 
 ```
@@ -647,7 +647,7 @@ limitations under the License.
 **Used By:**
 
 * [getrandom 0.2.2](https://github.com/rust-random/getrandom)
-* [rand 0.8.2](https://github.com/rust-random/rand)
+* [rand 0.8.3](https://github.com/rust-random/rand)
 * [rand_chacha 0.3.0](https://github.com/rust-random/rand)
 * [rand_core 0.6.1](https://github.com/rust-random/rand)
 
@@ -1157,11 +1157,11 @@ THE SOFTWARE.
 
 **Used By:**
 
-* [fyi_menu 0.5.5](https://github.com/Blobfolio/fyi)
-* [fyi_msg 0.5.5](https://github.com/Blobfolio/fyi)
-* [fyi_num 0.5.5](https://github.com/Blobfolio/fyi)
-* [fyi_witcher 0.5.5](https://github.com/Blobfolio/fyi)
-* [yesvgmap 0.1.3](https://github.com/Blobfolio/yesvgmap)
+* [fyi_menu 0.6.1](https://github.com/Blobfolio/fyi)
+* [fyi_msg 0.6.1](https://github.com/Blobfolio/fyi)
+* [fyi_num 0.6.1](https://github.com/Blobfolio/fyi)
+* [fyi_witcher 0.6.1](https://github.com/Blobfolio/fyi)
+* [yesvgmap 0.1.4](https://github.com/Blobfolio/yesvgmap)
 
 
 ```

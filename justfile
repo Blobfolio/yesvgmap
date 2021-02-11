@@ -76,6 +76,8 @@ rustflags   := "-C link-arg=-s"
 	[ ! -d "{{ justfile_directory() }}/target" ] || rm -rf "{{ justfile_directory() }}/target"
 	[ ! -d "{{ pkg_dir1 }}/target" ] || rm -rf "{{ pkg_dir1 }}/target"
 
+	cargo update -w
+
 
 # Clippy.
 @clippy:
@@ -163,7 +165,7 @@ version:
 # Init dependencies.
 @_init:
 	[ ! -f "{{ justfile_directory() }}/Cargo.lock" ] || rm "{{ justfile_directory() }}/Cargo.lock"
-	cargo update
+	cargo update -w
 	cargo outdated -w
 
 

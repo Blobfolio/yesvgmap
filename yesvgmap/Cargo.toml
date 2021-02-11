@@ -84,15 +84,15 @@ regex = "1.4.*"
 
 [dependencies.fyi_menu]
 git = "https://github.com/Blobfolio/fyi.git"
-branch = "feature/next"
+tag = "v0.6.1"
 
 [dependencies.fyi_msg]
 git = "https://github.com/Blobfolio/fyi.git"
-branch = "feature/next"
+tag = "v0.6.1"
 
 [dependencies.fyi_witcher]
 git = "https://github.com/Blobfolio/fyi.git"
-branch = "feature/next"
+tag = "v0.6.1"
 
 [dependencies.tempfile-fast]
 git = "https://github.com/FauxFaux/tempfile-fast-rs.git"

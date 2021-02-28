@@ -79,20 +79,14 @@ label = "<SVG(s)…>"
 description = "Any number of files and directories to crawl and crunch."
 
 [dependencies]
+argyle = "0.3.*"
+dowser = "0.1.*"
 lazy_static = "1.4.*"
 regex = "1.4.*"
 
-[dependencies.fyi_menu]
-git = "https://github.com/Blobfolio/fyi.git"
-tag = "v0.6.1"
-
 [dependencies.fyi_msg]
 git = "https://github.com/Blobfolio/fyi.git"
-tag = "v0.6.1"
-
-[dependencies.fyi_witcher]
-git = "https://github.com/Blobfolio/fyi.git"
-tag = "v0.6.1"
+branch = "feature/next"
 
 [dependencies.tempfile-fast]
 git = "https://github.com/FauxFaux/tempfile-fast-rs.git"

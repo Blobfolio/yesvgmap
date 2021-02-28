@@ -54,6 +54,7 @@ use std::{
 /// # Main.
 fn main() {
 	match _main() {
+		Ok(_) => {},
 		Err(ArgyleError::WantsVersion) => {
 			println!(concat!("Yesvgmap v", env!("CARGO_PKG_VERSION")));
 		},
@@ -63,7 +64,6 @@ fn main() {
 		Err(e) => {
 			Msg::error(e).die(1);
 		},
-		Ok(_) => {},
 	}
 }
 

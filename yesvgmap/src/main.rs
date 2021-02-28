@@ -28,49 +28,51 @@
 #![allow(clippy::missing_errors_doc)]
 #![allow(clippy::module_name_repetitions)]
 
-use fyi_menu::{
+use argyle::{
 	Argue,
-	ArgueError,
+	ArgyleError,
 	FLAG_HELP,
 	FLAG_REQUIRED,
 	FLAG_VERSION,
 };
-use fyi_msg::{
-	Msg,
-	MsgKind,
-};
-use fyi_witcher::Witcher;
+use dowser::Dowser;
+use fyi_msg::Msg;
 use regex::Regex;
 use std::{
 	borrow::Cow,
+	convert::TryFrom,
 	ffi::OsStr,
 	io::Write,
 	ops::Range,
 	os::unix::ffi::OsStrExt,
 	path::PathBuf,
+	path::Path,
 };
 
 
 
-/// Main.
+/// # Main.
 fn main() {
 	match _main() {
-		Err(ArgueError::WantsVersion) => {
-			fyi_msg::plain!(concat!("Yesvgmap v", env!("CARGO_PKG_VERSION")));
+		Ok(_) => {},
+		Err(ArgyleError::WantsVersion) => {
+			println!(concat!("Yesvgmap v", env!("CARGO_PKG_VERSION")));
 		},
-		Err(ArgueError::WantsHelp) => {
+		Err(ArgyleError::WantsHelp) => {
 			helper();
 		},
 		Err(e) => {
 			Msg::error(e).die(1);
 		},
-		Ok(_) => {},
 	}
 }
 
 #[inline]
-/// Actual main.
-fn _main() -> Result<(), ArgueError> {
+/// # Actual main.
+///
+/// Do our work here so we can easily bubble up errors and handle them nice and
+/// pretty.
+fn _main() -> Result<(), ArgyleError> {
 	// Parse CLI arguments.
 	let args = Argue::new(FLAG_HELP | FLAG_REQUIRED | FLAG_VERSION)?
 		.with_list();
@@ -110,17 +112,21 @@ fn _main() -> Result<(), ArgueError> {
 	map.push('>');
 
 	// Run through the files.
-	let mut guts: Vec<String> = Witcher::default()
-		.with_ext(b".svg")
-		.with_paths(args.args().iter().map(|x| OsStr::from_bytes(x.as_ref())))
-		.build()
+	let mut guts: Vec<String> =
+		Vec::<PathBuf>::try_from(
+			Dowser::default()
+				.with_filter(|p: &Path| p.extension()
+					.map_or(
+						false,
+						|e| e.as_bytes().eq_ignore_ascii_case(b"svg")
+					)
+				)
+				.with_paths(args.args().iter().map(|x| OsStr::from_bytes(x.as_ref())))
+		)
+		.map_err(|_| ArgyleError::Custom("No SVGs were found for the map."))?
 		.iter()
 		.filter_map(|p| svg_to_symbol(p, prefix))
 		.collect();
-
-	if guts.is_empty() {
-		return Err(ArgueError::Other("No SVGs were found for the map."));
-	}
 
 	guts.sort();
 	map.push_str(&guts.concat());
@@ -130,36 +136,31 @@ fn _main() -> Result<(), ArgueError> {
 	if let Some(path) = out {
 		tempfile_fast::Sponge::new_for(&path)
 			.and_then(|mut file| file.write_all(map.as_bytes()).and_then(|_| file.commit()))
-			.map_err(|_| ArgueError::Other("Unable to save output file."))?;
+			.map_err(|_| ArgyleError::Custom("Unable to save output file."))?;
 
-		Msg::new(
-			MsgKind::Success,
-			format!(
-				"A sprite with {} images has been saved to {:?}",
-				guts.len(),
-				std::fs::canonicalize(&path).unwrap()
-			)
-		)
-			.with_newline(true)
-			.print();
+		Msg::success(format!(
+			"A sprite with {} images has been saved to {:?}",
+			guts.len(),
+			std::fs::canonicalize(&path).unwrap()
+		)).print();
 	}
 	else {
 		let writer = std::io::stdout();
 		let mut handle = writer.lock();
-		let _ = handle.write_all(map.as_bytes())
+		let _res = handle.write_all(map.as_bytes())
 			.and_then(|_| handle.flush());
 	}
 
 	Ok(())
 }
 
-/// SVG to Symbol.
+/// # SVG to Symbol.
 ///
 /// This beastly function tries to tease out the `<svg>...</svg>` bits from the
 /// raw file contents. If that works, it then looks to see if it can find or
 /// calculate a viewbox value for it. Then it returns everything as a
 /// `<symbol>...</symbol>` for later map embedding.
-fn svg_to_symbol(path: &PathBuf, prefix: &str) -> Option<String> {
+fn svg_to_symbol(path: &Path, prefix: &str) -> Option<String> {
 	if let Some((svg, stem)) = std::fs::read_to_string(path)
 		.ok()
 		.zip(path.file_stem().and_then(OsStr::to_str))
@@ -175,19 +176,17 @@ fn svg_to_symbol(path: &PathBuf, prefix: &str) -> Option<String> {
 				));
 			}
 
-			Msg::new(
-				MsgKind::Warning,
-				format!("SVG has missing or unsupported viewBox: {:?}", path)
-			)
-				.with_newline(true)
-				.eprint();
+			Msg::warning(format!(
+				"SVG has missing or unsupported viewBox: {:?}",
+				path
+			)).eprint();
 		}
 	}
 
 	None
 }
 
-/// SVG Tag Boundaries
+/// # SVG Tag Boundaries
 ///
 /// Find the range of the opening and closing tags of an SVG. A positive return
 /// value only exists when both exist.
@@ -203,7 +202,7 @@ fn svg_bounds(raw: &str) -> Option<(Range<usize>, Range<usize>)> {
 		.filter(|(s,e)| e.start > s.end)
 }
 
-/// SVG Tag Attributes
+/// # SVG Tag Attributes
 ///
 /// Parse the tag attributes, returning a viewbox if possible.
 fn svg_viewbox(raw: &str) -> Option<Cow<str>> {
@@ -235,7 +234,7 @@ fn svg_viewbox(raw: &str) -> Option<Cow<str>> {
 	width.zip(height).map(|(w,h)| Cow::Owned(format!("0 0 {} {}", w, h)))
 }
 
-/// Parse Width/Height
+/// # Parse Width/Height
 ///
 /// Attribute widths and heights might have units or other garbage that would
 /// interfere with straight float conversion.
@@ -252,9 +251,9 @@ fn parse_attr_size(value: &str) -> Option<f64> {
 }
 
 #[cold]
-/// Print Help.
+/// # Print Help.
 fn helper() {
-	fyi_msg::plain!(concat!(
+	println!(concat!(
 		r#"
       .--.   _,
   .--;    \ /(_

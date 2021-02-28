@@ -112,14 +112,17 @@ fn _main() -> Result<(), ArgyleError> {
 	map.push('>');
 
 	// Run through the files.
-	let mut guts: Vec<String> = Vec::<PathBuf>::try_from(Dowser::default()
-		.with_filter(|p: &Path| p.extension()
-			.map_or(
-				false,
-				|e| e.as_bytes().eq_ignore_ascii_case(b"svg")
-			)
+	let mut guts: Vec<String> =
+		Vec::<PathBuf>::try_from(
+			Dowser::default()
+				.with_filter(|p: &Path| p.extension()
+					.map_or(
+						false,
+						|e| e.as_bytes().eq_ignore_ascii_case(b"svg")
+					)
+				)
+				.with_paths(args.args().iter().map(|x| OsStr::from_bytes(x.as_ref())))
 		)
-		.with_paths(args.args().iter().map(|x| OsStr::from_bytes(x.as_ref()))))
 		.map_err(|_| ArgyleError::Custom("No SVGs were found for the map."))?
 		.iter()
 		.filter_map(|p| svg_to_symbol(p, prefix))

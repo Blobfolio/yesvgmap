@@ -45,8 +45,10 @@ use std::{
 	io::Write,
 	ops::Range,
 	os::unix::ffi::OsStrExt,
-	path::PathBuf,
-	path::Path,
+	path::{
+		Path,
+		PathBuf,
+	},
 };
 
 

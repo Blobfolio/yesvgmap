@@ -17,7 +17,7 @@
 
 pkg_id      := "yesvgmap"
 pkg_name    := "Yesvgmap"
-pkg_dir1    := justfile_directory() + "/yesvgmap"
+pkg_dir1    := justfile_directory()
 
 cargo_dir   := "/tmp/" + pkg_id + "-cargo"
 cargo_bin   := cargo_dir + "/x86_64-unknown-linux-gnu/release/" + pkg_id
@@ -61,7 +61,6 @@ rustflags   := "-C link-arg=-s"
 @check:
 	# First let's build the Rust bit.
 	RUSTFLAGS="{{ rustflags }}" cargo check \
-		--workspace \
 		--release \
 		--target x86_64-unknown-linux-gnu \
 		--target-dir "{{ cargo_dir }}"
@@ -76,14 +75,11 @@ rustflags   := "-C link-arg=-s"
 	[ ! -d "{{ justfile_directory() }}/target" ] || rm -rf "{{ justfile_directory() }}/target"
 	[ ! -d "{{ pkg_dir1 }}/target" ] || rm -rf "{{ pkg_dir1 }}/target"
 
-	cargo update -w
-
 
 # Clippy.
 @clippy:
 	clear
 	RUSTFLAGS="{{ rustflags }}" cargo clippy \
-		--workspace \
 		--release \
 		--all-features \
 		--target x86_64-unknown-linux-gnu \
@@ -108,7 +104,6 @@ rustflags   := "-C link-arg=-s"
 
 	# Make the docs.
 	cargo +nightly doc \
-		--workspace \
 		--release \
 		--no-deps \
 		--target x86_64-unknown-linux-gnu \

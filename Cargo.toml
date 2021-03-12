@@ -80,6 +80,7 @@ description = "Any number of files and directories to crawl and crunch."
 
 [dependencies]
 argyle = "0.3.*"
+dactyl = "0.1.*"
 dowser = "0.2.*"
 lazy_static = "1.4.*"
 regex = "1.4.*"

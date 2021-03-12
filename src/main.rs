@@ -32,6 +32,7 @@ use argyle::{
 	FLAG_REQUIRED,
 	FLAG_VERSION,
 };
+use dactyl::GreaterThanZero;
 use dowser::Dowser;
 use fyi_msg::Msg;
 use regex::Regex;
@@ -215,8 +216,8 @@ fn svg_viewbox(raw: &str) -> Option<Cow<str>> {
 	}
 
 	// Build the width and height manually.
-	let mut width: Option<f64> = None;
-	let mut height: Option<f64> = None;
+	let mut width = GreaterThanZero::<f64>::default();
+	let mut height = GreaterThanZero::<f64>::default();
 
 	// Find the matches.
 	for caps in WH.captures_iter(raw) {
@@ -236,7 +237,7 @@ fn svg_viewbox(raw: &str) -> Option<Cow<str>> {
 ///
 /// Attribute widths and heights might have units or other garbage that would
 /// interfere with straight float conversion.
-fn parse_attr_size(value: &str) -> Option<f64> {
+fn parse_attr_size(value: &str) -> GreaterThanZero<f64> {
 	value.parse::<f64>()
 		.or_else(|_|
 			value.chars()
@@ -244,8 +245,7 @@ fn parse_attr_size(value: &str) -> Option<f64> {
 				.collect::<String>()
 				.parse::<f64>()
 		)
-		.ok()
-		.filter(|&x| x > 0.0)
+		.map_or_else(|_| GreaterThanZero::default(), GreaterThanZero::from)
 }
 
 #[cold]

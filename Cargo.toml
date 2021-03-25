@@ -1,7 +1,97 @@
-[workspace]
-members = [
-    "yesvgmap",
+[package]
+name = "yesvgmap"
+version = "0.1.6"
+license = "WTFPL"
+authors = ["Josh Stoik <josh@blobfolio.com>"]
+edition = "2018"
+description = "Yesvgmap is a CLI tool for building SVG sprite maps from individual SVG images."
+repository = "https://github.com/Blobfolio/yesvgmap"
+publish = false
+
+[package.metadata.deb]
+maintainer = "Josh Stoik <hello@blobfolio.com>"
+copyright = "2021, Blobfolio, LLC <hello@blobfolio.com>"
+license-file = ["./LICENSE", "0"]
+revision = "1"
+depends = "$auto"
+section = "utility"
+assets = [
+    ["./target/x86_64-unknown-linux-gnu/release/yesvgmap", "usr/bin/", "755"],
+    ["./release/completions/yesvgmap.bash", "etc/bash_completion.d/", "644"],
+    ["./release/man/yesvgmap.1.gz", "usr/share/man/man1/", "644"],
 ]
+
+[package.metadata.bashman]
+name = "Yesvgmap"
+bash-dir = "./release/completions"
+man-dir = "./release/man"
+
+[[package.metadata.bashman.switches]]
+short = "-h"
+long = "--help"
+description = "Print help information."
+
+[[package.metadata.bashman.switches]]
+long = "--hidden"
+description = "Hide with the 'hidden' attribute. Overrides --offscreen if both are set."
+
+[[package.metadata.bashman.switches]]
+long = "--offscreen"
+description = "Hide by placing the element offscreen with inline styles."
+
+[[package.metadata.bashman.switches]]
+short = "-V"
+long = "--version"
+description = "Print application version."
+
+[[package.metadata.bashman.options]]
+short = "-l"
+long = "--list"
+label = "<FILE>"
+description = "Read file paths from this text file."
+path = true
+
+[[package.metadata.bashman.options]]
+long = "--map-class"
+description = "A class attribute value to assign to the map itself. [default: ]"
+label = "<CLASS>"
+
+[[package.metadata.bashman.options]]
+long = "--map-id"
+description = "An ID attribute value to assign to the map itself. [default: ]"
+label = "<ID>"
+
+[[package.metadata.bashman.options]]
+short = "-o"
+long = "--output"
+description = "A file path to save the generated map to. If not specified, the map will print to STDOUT."
+label = "<FILE>"
+path = true
+
+[[package.metadata.bashman.options]]
+short = "-p"
+long = "--prefix"
+description = "Symbols will be assigned the ID 'prefix-basename'. [default: icon]"
+label = "<PREFIX>"
+
+[[package.metadata.bashman.arguments]]
+label = "<SVG(s)…>"
+description = "Any number of files and directories to crawl and crunch."
+
+[dependencies]
+argyle = "0.3.*"
+dactyl = "0.1.*"
+dowser = "0.2.*"
+lazy_static = "1.4.*"
+regex = "1.4.*"
+
+[dependencies.fyi_msg]
+git = "https://github.com/Blobfolio/fyi.git"
+tag = "v0.7.0"
+
+[dependencies.tempfile-fast]
+git = "https://github.com/FauxFaux/tempfile-fast-rs.git"
+rev = "7cd84b2"
 
 [profile.release]
 lto = true

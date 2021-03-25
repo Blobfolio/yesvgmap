@@ -227,7 +227,7 @@ limitations under the License.
 
 **Used By:**
 
-* [ahash 0.7.1](https://github.com/tkaitchuck/ahash)
+* [ahash 0.7.2](https://github.com/tkaitchuck/ahash)
 * [cfg-if 1.0.0](https://github.com/alexcrichton/cfg-if)
 * [crossbeam-channel 0.5.0](https://github.com/crossbeam-rs/crossbeam)
 * [crossbeam-deque 0.8.0](https://github.com/crossbeam-rs/crossbeam)
@@ -235,18 +235,17 @@ limitations under the License.
 * [crossbeam-utils 0.8.3](https://github.com/crossbeam-rs/crossbeam)
 * [either 1.6.1](https://github.com/bluss/either)
 * [lazy_static 1.4.0](https://github.com/rust-lang-nursery/lazy-static.rs)
-* [libc 0.2.86](https://github.com/rust-lang/libc)
+* [libc 0.2.91](https://github.com/rust-lang/libc)
 * [num-integer 0.1.44](https://github.com/rust-num/num-integer)
 * [num-traits 0.2.14](https://github.com/rust-num/num-traits)
 * [num_cpus 1.13.0](https://github.com/seanmonstar/num_cpus)
-* [once_cell 1.7.0](https://github.com/matklad/once_cell)
+* [once_cell 1.7.2](https://github.com/matklad/once_cell)
 * [rayon 1.5.0](https://github.com/rayon-rs/rayon)
 * [rayon-core 1.9.0](https://github.com/rayon-rs/rayon)
-* [regex 1.4.3](https://github.com/rust-lang/regex)
-* [regex-syntax 0.6.22](https://github.com/rust-lang/regex)
+* [regex 1.4.5](https://github.com/rust-lang/regex)
+* [regex-syntax 0.6.23](https://github.com/rust-lang/regex)
 * [scopeguard 1.1.0](https://github.com/bluss/scopeguard)
 * [tempfile 3.2.0](https://github.com/Stebalien/tempfile)
-* [thread_local 1.1.3](https://github.com/Amanieu/thread_local-rs)
 
 
 ```
@@ -969,9 +968,10 @@ THE SOFTWARE.
 
 **Used By:**
 
-* [argyle 0.3.0](https://github.com/Blobfolio/argyle)
-* [dactyl 0.1.4](https://github.com/Blobfolio/dactyl)
-* [dowser 0.1.1](https://github.com/Blobfolio/dowser)
+* [argyle 0.3.1](https://github.com/Blobfolio/argyle)
+* [dactyl 0.1.7](https://github.com/Blobfolio/dactyl)
+* [dowser 0.2.0](https://github.com/Blobfolio/dowser)
+* [yesvgmap 0.1.6](https://github.com/Blobfolio/yesvgmap)
 
 
 ```
@@ -996,7 +996,6 @@ TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 **Used By:**
 
 * [fyi_msg 0.7.0](https://github.com/Blobfolio/fyi)
-* [yesvgmap 0.1.5](https://github.com/Blobfolio/yesvgmap)
 
 
 ```

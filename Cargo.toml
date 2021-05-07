@@ -83,7 +83,7 @@ argyle = "0.4.*"
 dactyl = "0.1.*"
 dowser = "0.2.*"
 lazy_static = "1.4.*"
-regex = "1.4.*"
+regex = "1.5.*"
 
 [dependencies.fyi_msg]
 git = "https://github.com/Blobfolio/fyi.git"

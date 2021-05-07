@@ -33,7 +33,10 @@ use argyle::{
 	FLAG_VERSION,
 };
 use dactyl::GreaterThanZero;
-use dowser::Dowser;
+use dowser::{
+	Dowser,
+	Extension,
+};
 use fyi_msg::Msg;
 use regex::Regex;
 use std::{
@@ -73,6 +76,9 @@ fn main() {
 /// Do our work here so we can easily bubble up errors and handle them nice and
 /// pretty.
 fn _main() -> Result<(), ArgyleError> {
+	// The SVG extension we're looking for.
+	const E_SVG: Extension = Extension::new3(*b"svg");
+
 	// Parse CLI arguments.
 	let args = Argue::new(FLAG_HELP | FLAG_REQUIRED | FLAG_VERSION)?
 		.with_list();
@@ -114,12 +120,7 @@ fn _main() -> Result<(), ArgyleError> {
 	// Run through the files.
 	let mut guts: Vec<String> =
 		Vec::<PathBuf>::try_from(
-			Dowser::filtered(|p: &Path| p.extension()
-				.map_or(
-					false,
-					|e| e.as_bytes().eq_ignore_ascii_case(b"svg")
-				)
-			)
+			Dowser::filtered(|p: &Path| Extension::try_from3(p).map_or(false, |e| e == E_SVG))
 				.with_paths(args.args().iter().map(|x| OsStr::from_bytes(x.as_ref())))
 		)
 		.map_err(|_| ArgyleError::Custom("No SVGs were found for the map."))?

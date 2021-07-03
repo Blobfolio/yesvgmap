@@ -85,10 +85,7 @@ dowser = "0.2.*"
 fyi_msg = "0.8.*"
 lazy_static = "1.4.*"
 regex = "1.5.*"
-
-[dependencies.tempfile-fast]
-git = "https://github.com/FauxFaux/tempfile-fast-rs.git"
-rev = "7cd84b2"
+write_atomic = "0.1.*"
 
 [profile.release]
 lto = true

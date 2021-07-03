@@ -134,8 +134,7 @@ fn _main() -> Result<(), ArgyleError> {
 
 	// Try to save it.
 	if let Some(path) = out {
-		tempfile_fast::Sponge::new_for(&path)
-			.and_then(|mut file| file.write_all(map.as_bytes()).and_then(|_| file.commit()))
+		write_atomic::write_file(&path, map.as_bytes())
 			.map_err(|_| ArgyleError::Custom("Unable to save output file."))?;
 
 		Msg::success(format!(

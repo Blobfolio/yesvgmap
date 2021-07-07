@@ -83,7 +83,7 @@ argyle = "0.4.*"
 dactyl = "0.1.*"
 dowser = "0.2.*"
 fyi_msg = "0.8.*"
-lazy_static = "1.4.*"
+once_cell = "1.8.*"
 regex = "1.5.*"
 write_atomic = "0.1.*"
 

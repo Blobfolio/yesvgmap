@@ -38,7 +38,7 @@ use dowser::{
 	Extension,
 };
 use fyi_msg::Msg;
-use once_cell::sync::OnceCell;
+use once_cell::sync::Lazy;
 use regex::Regex;
 use std::{
 	borrow::Cow,
@@ -191,13 +191,12 @@ fn svg_to_symbol(path: &Path, prefix: &str) -> Option<String> {
 /// Find the range of the opening and closing tags of an SVG. A positive return
 /// value only exists when both exist.
 fn svg_bounds(raw: &str) -> Option<(Range<usize>, Range<usize>)> {
-	static OPEN: OnceCell<Regex> = OnceCell::new();
-	static CLOSE: OnceCell<Regex> = OnceCell::new();
+	static OPEN: Lazy<Regex> = Lazy::new(|| Regex::new(r#"(?i)<svg(\s+[^>]+)?>"#).unwrap());
+	static CLOSE: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?i)</svg>").unwrap());
 
-	OPEN.get_or_init(|| Regex::new(r#"(?i)<svg(\s+[^>]+)?>"#).unwrap())
-		.find(raw)
+	OPEN.find(raw)
 		.map(|m| m.start()..m.end())
-		.zip(CLOSE.get_or_init(|| Regex::new(r"(?i)</svg>").unwrap()).find(raw).map(|m| m.start()..m.end()))
+		.zip(CLOSE.find(raw).map(|m| m.start()..m.end()))
 		.filter(|(s,e)| e.start > s.end)
 }
 
@@ -205,11 +204,11 @@ fn svg_bounds(raw: &str) -> Option<(Range<usize>, Range<usize>)> {
 ///
 /// Parse the tag attributes, returning a viewbox if possible.
 fn svg_viewbox(raw: &str) -> Option<Cow<str>> {
-	static VB: OnceCell<Regex> = OnceCell::new();
-	static WH: OnceCell<Regex> = OnceCell::new();
+	static VB: Lazy<Regex> = Lazy::new(|| Regex::new(r#"(?i)viewbox\s*=\s*('|")(0 0 [\d. ]+ [\d. ]+)('|")"#).unwrap());
+	static WH: Lazy<Regex> = Lazy::new(|| Regex::new(r#"(?i)(?P<key>(width|height))\s*=\s*('|")?(?P<value>[a-z\d. ]+)('|")?"#).unwrap());
 
 	// Direct hit!
-	if let Some(m) = VB.get_or_init(|| Regex::new(r#"(?i)viewbox\s*=\s*('|")(0 0 [\d. ]+ [\d. ]+)('|")"#).unwrap()).captures(raw).and_then(|m| m.get(2)) {
+	if let Some(m) = VB.captures(raw).and_then(|m| m.get(2)) {
 		return Some(Cow::Borrowed(&raw[m.start()..m.end()]));
 	}
 
@@ -218,7 +217,7 @@ fn svg_viewbox(raw: &str) -> Option<Cow<str>> {
 	let mut height = GreaterThanZero::<f64>::default();
 
 	// Find the matches.
-	for caps in WH.get_or_init(|| Regex::new(r#"(?i)(?P<key>(width|height))\s*=\s*('|")?(?P<value>[a-z\d. ]+)('|")?"#).unwrap()).captures_iter(raw) {
+	for caps in WH.captures_iter(raw) {
 		let key = caps["key"].to_lowercase();
 		if key == "width" {
 			width = parse_attr_size(&caps["value"]);

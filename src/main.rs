@@ -38,6 +38,7 @@ use dowser::{
 	Extension,
 };
 use fyi_msg::Msg;
+use once_cell::sync::Lazy;
 use regex::Regex;
 use std::{
 	borrow::Cow,
@@ -190,10 +191,8 @@ fn svg_to_symbol(path: &Path, prefix: &str) -> Option<String> {
 /// Find the range of the opening and closing tags of an SVG. A positive return
 /// value only exists when both exist.
 fn svg_bounds(raw: &str) -> Option<(Range<usize>, Range<usize>)> {
-	lazy_static::lazy_static! {
-		static ref OPEN: Regex = Regex::new(r#"(?i)<svg(\s+[^>]+)?>"#).unwrap();
-		static ref CLOSE: Regex = Regex::new(r"(?i)</svg>").unwrap();
-	}
+	static OPEN: Lazy<Regex> = Lazy::new(|| Regex::new(r#"(?i)<svg(\s+[^>]+)?>"#).unwrap());
+	static CLOSE: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?i)</svg>").unwrap());
 
 	OPEN.find(raw)
 		.map(|m| m.start()..m.end())
@@ -205,10 +204,8 @@ fn svg_bounds(raw: &str) -> Option<(Range<usize>, Range<usize>)> {
 ///
 /// Parse the tag attributes, returning a viewbox if possible.
 fn svg_viewbox(raw: &str) -> Option<Cow<str>> {
-	lazy_static::lazy_static! {
-		static ref VB: Regex = Regex::new(r#"(?i)viewbox\s*=\s*('|")(0 0 [\d. ]+ [\d. ]+)('|")"#).unwrap();
-		static ref WH: Regex = Regex::new(r#"(?i)(?P<key>(width|height))\s*=\s*('|")?(?P<value>[a-z\d. ]+)('|")?"#).unwrap();
-	}
+	static VB: Lazy<Regex> = Lazy::new(|| Regex::new(r#"(?i)viewbox\s*=\s*('|")(0 0 [\d. ]+ [\d. ]+)('|")"#).unwrap());
+	static WH: Lazy<Regex> = Lazy::new(|| Regex::new(r#"(?i)(?P<key>(width|height))\s*=\s*('|")?(?P<value>[a-z\d. ]+)('|")?"#).unwrap());
 
 	// Direct hit!
 	if let Some(m) = VB.captures(raw).and_then(|m| m.get(2)) {

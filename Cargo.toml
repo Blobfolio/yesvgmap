@@ -13,7 +13,7 @@ maintainer = "Josh Stoik <hello@blobfolio.com>"
 copyright = "2021, Blobfolio, LLC <hello@blobfolio.com>"
 license-file = ["./LICENSE", "0"]
 revision = "1"
-depends = "libc6 (>= 2.18), libgcc1 (>= 1:4.2) | libgcc-s1 (>= 4.2)"
+depends = "libc6 (>= 2.18), libgcc-s1 (>= 4.2)"
 section = "utility"
 assets = [
     ["./target/x86_64-unknown-linux-gnu/release/yesvgmap", "usr/bin/", "755"],

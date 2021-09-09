@@ -18,12 +18,12 @@ License details for project dependencies are listed below.
 * [ahash 0.7.4](https://github.com/tkaitchuck/ahash)
 * [cfg-if 1.0.0](https://github.com/alexcrichton/cfg-if)
 * [crossbeam-channel 0.5.1](https://github.com/crossbeam-rs/crossbeam)
-* [crossbeam-deque 0.8.0](https://github.com/crossbeam-rs/crossbeam)
+* [crossbeam-deque 0.8.1](https://github.com/crossbeam-rs/crossbeam)
 * [crossbeam-epoch 0.9.5](https://github.com/crossbeam-rs/crossbeam)
 * [crossbeam-utils 0.8.5](https://github.com/crossbeam-rs/crossbeam)
 * [either 1.6.1](https://github.com/bluss/either)
 * [lazy_static 1.4.0](https://github.com/rust-lang-nursery/lazy-static.rs)
-* [libc 0.2.98](https://github.com/rust-lang/libc)
+* [libc 0.2.101](https://github.com/rust-lang/libc)
 * [num-traits 0.2.14](https://github.com/rust-num/num-traits)
 * [num_cpus 1.13.0](https://github.com/seanmonstar/num_cpus)
 * [once_cell 1.8.0](https://github.com/matklad/once_cell)
@@ -874,7 +874,7 @@ limitations under the License.
 **Used By:**
 
 * [aho-corasick 0.7.18](https://github.com/BurntSushi/aho-corasick)
-* [memchr 2.4.0](https://github.com/BurntSushi/rust-memchr)
+* [memchr 2.4.1](https://github.com/BurntSushi/memchr)
 
 
 ```
@@ -940,7 +940,7 @@ SOFTWARE.
 * [dowser 0.2.4](https://github.com/Blobfolio/dowser)
 * [fyi_msg 0.8.1](https://github.com/Blobfolio/fyi)
 * [write_atomic 0.1.0](https://github.com/Blobfolio/write_atomic)
-* [yesvgmap 0.2.0](https://github.com/Blobfolio/yesvgmap)
+* [yesvgmap 0.2.1](https://github.com/Blobfolio/yesvgmap)
 
 
 ```

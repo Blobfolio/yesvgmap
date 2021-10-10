@@ -42,7 +42,6 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use std::{
 	borrow::Cow,
-	convert::TryFrom,
 	ffi::OsStr,
 	io::Write,
 	ops::Range,

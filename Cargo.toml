@@ -85,7 +85,7 @@ argyle = "0.5.*"
 dactyl = "0.2.*"
 dowser = "0.3.*"
 fyi_msg = "0.9.*"
-once_cell = "1.8.*"
+once_cell = "1.9.*"
 regex = "1.5.*"
 write_atomic = "0.2.*"
 

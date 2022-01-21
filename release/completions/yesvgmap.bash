@@ -38,7 +38,11 @@ _basher___yesvgmap() {
 
 	case "${prev}" in
 		-l|-o|--list|--output)
-			COMPREPLY=( $( compgen -f "${cur}" ) )
+			if [ -z "$( declare -f _filedir )" ]; then
+				COMPREPLY=( $( compgen -f "${cur}" ) )
+			else
+				COMPREPLY=( $( _filedir ) )
+			fi
 			return 0
 			;;
 		*)

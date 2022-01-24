@@ -1,6 +1,6 @@
 [package]
 name = "yesvgmap"
-version = "0.2.4"
+version = "0.2.5"
 license = "WTFPL"
 authors = ["Josh Stoik <josh@blobfolio.com>"]
 edition = "2021"
@@ -11,7 +11,7 @@ publish = false
 
 [package.metadata.deb]
 maintainer = "Josh Stoik <hello@blobfolio.com>"
-copyright = "2021, Blobfolio, LLC <hello@blobfolio.com>"
+copyright = "2022, Blobfolio, LLC <hello@blobfolio.com>"
 license-file = ["./LICENSE", "0"]
 revision = "1"
 depends = "$auto"

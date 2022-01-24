@@ -94,7 +94,7 @@ fn _main() -> Result<(), ArgyleError> {
 		.unwrap_or("i");
 
 	// Start putting together the map's opening tag.
-	let mut map: String = String::from(r#"<svg xmlns="http://www.w3.org/2000/svg" aria-hidden=true"#);
+	let mut map: String = String::from(r#"<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true""#);
 
 	if let Some(i) = args.option(b"--map-id").and_then(|x| std::str::from_utf8(x).ok()) {
 		map.push_str(r#" id=""#);

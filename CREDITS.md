@@ -1,7 +1,7 @@
 # Project Dependencies
     Package:   yesvgmap
-    Version:   0.2.4
-    Generated: 2022-01-21 05:05:02 UTC
+    Version:   0.2.5
+    Generated: 2022-01-24 21:48:17 UTC
 
 | Package | Version | Author(s) | License |
 | ---- | ---- | ---- | ---- |
@@ -17,7 +17,7 @@
 | [dactyl](https://github.com/Blobfolio/dactyl) | 0.2.3 | [Blobfolio, LLC.](mailto:hello@blobfolio.com) | WTFPL |
 | [dowser](https://github.com/Blobfolio/dowser) | 0.3.5 | [Blobfolio, LLC.](mailto:hello@blobfolio.com) | WTFPL |
 | [either](https://github.com/bluss/either) | 1.6.1 | bluss | Apache-2.0 or MIT |
-| [fastrand](https://github.com/smol-rs/fastrand) | 1.6.0 | [Stjepan Glavina](mailto:stjepang@gmail.com) | Apache-2.0 or MIT |
+| [fastrand](https://github.com/smol-rs/fastrand) | 1.7.0 | [Stjepan Glavina](mailto:stjepang@gmail.com) | Apache-2.0 or MIT |
 | [flume](https://github.com/zesterer/flume) | 0.10.10 | [Joshua Barretto](mailto:joshua.s.barretto@gmail.com) | Apache-2.0 or MIT |
 | [fyi_msg](https://github.com/Blobfolio/fyi) | 0.9.2 | [Blobfolio, LLC.](mailto:hello@blobfolio.com) | WTFPL |
 | [getrandom](https://github.com/rust-random/getrandom) | 0.2.4 | The Rand Project Developers | Apache-2.0 or MIT |

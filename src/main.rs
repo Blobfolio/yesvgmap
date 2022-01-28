@@ -44,9 +44,12 @@ use dowser::{
 };
 pub(crate) use error::SvgError;
 use fyi_msg::Msg;
+use img::{
+	HideType,
+	Map,
+};
 use std::{
 	ffi::OsStr,
-	io::Write,
 	os::unix::ffi::OsStrExt,
 	path::{
 		Path,
@@ -95,65 +98,42 @@ fn _main() -> Result<(), SvgError> {
 		.and_then(|x| std::str::from_utf8(x).ok())
 		.unwrap_or("i");
 
-	// Start putting together the map's opening tag.
-	let mut map: String = String::from(r#"<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true""#);
+	// Hiding strategy.
+	let hide =
+		if args.switch(b"--hidden") { HideType::Hidden }
+		else if args.switch(b"--offscreen") { HideType::Offscreen }
+		else { HideType::None };
 
-	if let Some(i) = args.option(b"--map-id").and_then(|x| std::str::from_utf8(x).ok()) {
-		map.push_str(r#" id=""#);
-		map.push_str(i);
-		map.push('"');
-	}
-
-	if let Some(c) = args.option(b"--map-class").and_then(|x| std::str::from_utf8(x).ok()) {
-		map.push_str(r#" class=""#);
-		map.push_str(c);
-		map.push('"');
-	}
-
-	if args.switch(b"--hidden") {
-		map.push_str(" hidden");
-	}
-	else if args.switch(b"--offscreen") {
-		map.push_str(r#" style="position:fixed;top:0;left:-100px;width:1px;height:1px;overflow:hidden;""#);
-	}
-
-	map.push('>');
+	// ID and class.
+	let id = args.option(b"--map-id").and_then(|x| std::str::from_utf8(x).ok());
+	let class = args.option(b"--map-class").and_then(|x| std::str::from_utf8(x).ok());
 
 	// Find the files!
-	let files = Vec::<PathBuf>::try_from(
-			Dowser::filtered(|p: &Path| Extension::try_from3(p).map_or(false, |e| e == E_SVG))
-				.with_paths(args.args().iter().map(|x| OsStr::from_bytes(x)))
-		)
-		.map_err(|_| SvgError::NoSvgs)?;
+	let map = Map::new(
+		id,
+		class,
+		hide,
+		prefix,
+		Dowser::filtered(|p: &Path| Extension::try_from3(p).map_or(false, |e| e == E_SVG))
+			.with_paths(args.args().iter().map(|x| OsStr::from_bytes(x)))
+			.into_vec()
+	)?;
 
-	// Run through the files.
-	let mut guts: Vec<String> = Vec::with_capacity(files.len());
-	for file in files {
-		guts.push(img::parse(&file, prefix)?);
-	}
-
-	guts.sort();
-	map.push_str(&guts.concat());
-	map.push_str("</svg>\n");
-
-	// Try to save it.
+	// Save it to a file.
 	if let Some(path) = out {
-		write_atomic::write_file(&path, map.as_bytes())
+		write_atomic::write_file(&path, map.to_string().as_bytes())
 			.map_err(|_| SvgError::Write)?;
 
 		Msg::success(format!(
 			"A sprite with {} images has been saved to {:?}",
-			guts.len(),
+			map.len(),
 			std::fs::canonicalize(&path).unwrap()
 		)).print();
 	}
-	else {
-		let writer = std::io::stdout();
-		let mut handle = writer.lock();
-		let _res = handle.write_all(map.as_bytes())
-			.and_then(|_| handle.flush());
-	}
+	// Just print it.
+	else { println!("{}", map); }
 
+	// Done!
 	Ok(())
 }
 

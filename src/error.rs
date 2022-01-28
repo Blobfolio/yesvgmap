@@ -17,6 +17,9 @@ pub(super) enum SvgError {
 	/// # Argyle passthrough.
 	Argue(ArgyleError),
 
+	/// # Duplicate entry.
+	Duplicate,
+
 	/// # No SVGs.
 	NoSvgs,
 
@@ -56,6 +59,7 @@ impl SvgError {
 	pub(super) const fn as_str(&self) -> &'static str {
 		match self {
 			Self::Argue(e) => e.as_str(),
+			Self::Duplicate => "Normalized file names must be unique.",
 			Self::NoSvgs => "No SVGs were found.",
 			Self::Write => "Unable to save the SVG map.",
 			_ => "",

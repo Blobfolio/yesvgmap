@@ -1,12 +1,11 @@
 # Project Dependencies
     Package:   yesvgmap
-    Version:   0.2.5
-    Generated: 2022-01-24 21:48:17 UTC
+    Version:   0.3.0
+    Generated: 2022-01-28 21:59:03 UTC
 
 | Package | Version | Author(s) | License |
 | ---- | ---- | ---- | ---- |
 | [ahash](https://github.com/tkaitchuck/ahash) | 0.7.6 | [Tom Kaitchuck](mailto:Tom.Kaitchuck@gmail.com) | Apache-2.0 or MIT |
-| [aho-corasick](https://github.com/BurntSushi/aho-corasick) | 0.7.18 | [Andrew Gallant](mailto:jamslam@gmail.com) | MIT or Unlicense |
 | [argyle](https://github.com/Blobfolio/argyle) | 0.5.2 | [Blobfolio, LLC.](mailto:hello@blobfolio.com) | WTFPL |
 | [bitflags](https://github.com/bitflags/bitflags) | 1.3.2 | The Rust Project Developers | Apache-2.0 or MIT |
 | [cfg-if](https://github.com/alexcrichton/cfg-if) | 1.0.0 | [Alex Crichton](mailto:alex@alexcrichton.com) | Apache-2.0 or MIT |
@@ -19,14 +18,13 @@
 | [either](https://github.com/bluss/either) | 1.6.1 | bluss | Apache-2.0 or MIT |
 | [fastrand](https://github.com/smol-rs/fastrand) | 1.7.0 | [Stjepan Glavina](mailto:stjepang@gmail.com) | Apache-2.0 or MIT |
 | [flume](https://github.com/zesterer/flume) | 0.10.10 | [Joshua Barretto](mailto:joshua.s.barretto@gmail.com) | Apache-2.0 or MIT |
-| [fyi_msg](https://github.com/Blobfolio/fyi) | 0.9.2 | [Blobfolio, LLC.](mailto:hello@blobfolio.com) | WTFPL |
+| [fyi_msg](https://github.com/Blobfolio/fyi) | 0.9.3 | [Blobfolio, LLC.](mailto:hello@blobfolio.com) | WTFPL |
 | [getrandom](https://github.com/rust-random/getrandom) | 0.2.4 | The Rand Project Developers | Apache-2.0 or MIT |
 | [hermit-abi](https://github.com/hermitcore/libhermit-rs) | 0.1.19 | Stefan Lankes | Apache-2.0 or MIT |
 | [instant](https://github.com/sebcrozet/instant) | 0.1.12 | [sebcrozet](mailto:developer@crozet.re) | BSD-3-Clause |
 | [lazy_static](https://github.com/rust-lang-nursery/lazy-static.rs) | 1.4.0 | [Marvin Löbel](mailto:loebel.marvin@gmail.com) | Apache-2.0 or MIT |
-| [libc](https://github.com/rust-lang/libc) | 0.2.113 | The Rust Project Developers | Apache-2.0 or MIT |
+| [libc](https://github.com/rust-lang/libc) | 0.2.115 | The Rust Project Developers | Apache-2.0 or MIT |
 | [lock_api](https://github.com/Amanieu/parking_lot) | 0.4.5 | [Amanieu d'Antras](mailto:amanieu@gmail.com) | Apache-2.0 or MIT |
-| [memchr](https://github.com/BurntSushi/memchr) | 2.4.1 | [Andrew Gallant](mailto:jamslam@gmail.com) and bluss | MIT or Unlicense |
 | [memoffset](https://github.com/Gilnaa/memoffset) | 0.6.5 | [Gilad Naaman](mailto:gilad.naaman@gmail.com) | MIT |
 | [num-traits](https://github.com/rust-num/num-traits) | 0.2.14 | The Rust Project Developers | Apache-2.0 or MIT |
 | [num_cpus](https://github.com/seanmonstar/num_cpus) | 1.13.1 | [Sean McArthur](mailto:sean@seanmonstar.com) | Apache-2.0 or MIT |
@@ -36,12 +34,11 @@
 | [rayon](https://github.com/rayon-rs/rayon) | 1.5.1 | [Niko Matsakis](mailto:niko@alum.mit.edu) and [Josh Stone](mailto:cuviper@gmail.com) | Apache-2.0 or MIT |
 | [rayon-core](https://github.com/rayon-rs/rayon) | 1.9.1 | [Niko Matsakis](mailto:niko@alum.mit.edu) and [Josh Stone](mailto:cuviper@gmail.com) | Apache-2.0 or MIT |
 | [redox_syscall](https://gitlab.redox-os.org/redox-os/syscall) | 0.2.10 | [Jeremy Soller](mailto:jackpot51@gmail.com) | MIT |
-| [regex](https://github.com/rust-lang/regex) | 1.5.4 | The Rust Project Developers | Apache-2.0 or MIT |
-| [regex-syntax](https://github.com/rust-lang/regex) | 0.6.25 | The Rust Project Developers | Apache-2.0 or MIT |
 | [remove_dir_all](https://github.com/XAMPPRocky/remove_dir_all.git) | 0.5.3 | [Aaronepower](mailto:theaaronepower@gmail.com) | Apache-2.0 or MIT |
 | [scopeguard](https://github.com/bluss/scopeguard) | 1.1.0 | bluss | Apache-2.0 or MIT |
 | [smallvec](https://github.com/servo/rust-smallvec) | 1.8.0 | The Servo Project Developers | Apache-2.0 or MIT |
 | [spin](https://github.com/mvdnes/spin-rs.git) | 0.9.2 | [Mathijs van de Nes](mailto:git@mathijs.vd-nes.nl), [John Ericson](mailto:git@JohnEricson.me), and [Joshua Barretto](mailto:joshua.s.barretto@gmail.com) | MIT |
+| [svg](https://github.com/bodoni/svg) | 0.10.0 | [Adam Bryant](mailto:adam.w.bryant@outlook.com), [Felix Schütt](mailto:felix.schuett@maps4print.com), [GeoffreyY](mailto:yeungchingho123@gmail.com), [Gijs Burghoorn](mailto:g.burghoorn@gmail.com), [Ivan Ukhov](mailto:ivan.ukhov@gmail.com), [Mike Wilkerson](mailto:mwilkerson@gmail.com), [Nicolas Silva](mailto:nical@fastmail.com), [Nor Khasyatillah](mailto:mazznoer@ymail.com), [OCTronics](mailto:octronics@riseup.net), [Patrick Chieppe](mailto:patrick.chieppe@hotmail.com), [Will Nelson](mailto:will@wnelson.xyz), [Xander Rudelis](mailto:xander.rudelis@gmail.com), [e-matteson](mailto:e.r.matteson@gmail.com), and [kmkzt](mailto:info.pscreator@gmail.com) | Apache-2.0 or MIT |
 | [tempfile](https://github.com/Stebalien/tempfile) | 3.3.0 | [Steven Allen](mailto:steven@stebalien.com), The Rust Project Developers, [Ashley Mannix](mailto:ashleymannix@live.com.au), and [Jason White](mailto:jasonaw0@gmail.com) | Apache-2.0 or MIT |
 | [wasi](https://github.com/bytecodealliance/wasi) | 0.10.2+wasi-snapshot-preview1 | The Cranelift Project Developers | Apache-2.0, Apache-2.0 WITH LLVM-exception, or MIT |
 | [winapi](https://github.com/retep998/winapi-rs) | 0.3.9 | [Peter Atashian](mailto:retep998@gmail.com) | Apache-2.0 or MIT |

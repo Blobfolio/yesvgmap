@@ -3,65 +3,318 @@
 */
 
 use crate::SvgError;
-use once_cell::sync::Lazy;
-use regex::bytes::Regex;
 use std::{
-	ffi::OsStr,
-	path::Path,
+	fmt,
+	path::{
+		Path,
+		PathBuf,
+	},
+};
+use svg::{
+	node::{
+		Attributes,
+		element::{
+			Element,
+			Symbol,
+			tag::Type,
+			SVG,
+		},
+		Node,
+		Value,
+	},
+	parser::{
+		Event,
+		Parser,
+	},
 };
 
 
 
-/// # Parse SVG.
+#[derive(Debug, Clone)]
+/// # SVG Map.
 ///
-/// This parses a standalone SVG file and converts it into a `<symbol>` that
-/// can be stuffed into our map.
-pub(super) fn parse(path: &Path, prefix: &str) -> Result<String, SvgError> {
-	// We'll need the file name eventually. It's a lightweight query; might as
-	// well get it out of the way and fail early if necessary.
-	let stem: &str = path.file_stem()
-		.and_then(OsStr::to_str)
-		.ok_or_else(|| SvgError::Read(path.to_path_buf()))?;
+/// This holds an `svg` element with some number of `symbol` children.
+pub(super) struct Map {
+	inner: SVG,
+	len: usize,
+}
 
+impl fmt::Display for Map {
+	/// # To String.
+	///
+	/// This emits SVG code, slightly compressed.
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		f.write_str(
+			&self.inner.to_string()
+				.replace(" hidden=\"true\"", " hidden")
+				.replace(">\n<", "><")
+		)
+	}
+}
+
+impl Map {
+	/// # New.
+	pub(super) fn new(
+		id: Option<&str>,
+		class: Option<&str>,
+		hide: HideType,
+		prefix: &str,
+		paths: Vec<PathBuf>
+	) -> Result<Self, SvgError> {
+		// There have to be paths.
+		if paths.is_empty() {
+			return Err(SvgError::NoSvgs);
+		}
+
+		// Start the map!
+		let mut map = SVG::new()
+			.set("xmlns", "http://www.w3.org/2000/svg")
+			.set("aria-hidden", "true");
+
+		// Add an ID?
+		if let Some(id) = id { map = map.set("id", id); }
+
+		// Add a class?
+		if let Some(class) = class { map = map.set("class", class); }
+
+		// Hide it in some way?
+		match hide {
+			HideType::Hidden => {
+				map = map.set("hidden", "true");
+			},
+			HideType::Offscreen => {
+				map = map.set("style", "position:fixed;top:0;left:-100px;width:1px;height:1px;overflow:hidden");
+			},
+			HideType::None => {},
+		}
+
+		// Handle the paths!
+		let len: usize = paths.len();
+		let mut nice_paths: Vec<(String, Symbol)> = Vec::with_capacity(len);
+		for path in paths {
+			// The symbol ID is built from the alphanumeric (and dash)
+			// characters in the file name.
+			let stem: String = path.file_stem()
+				.ok_or_else(|| SvgError::Read(path.clone()))?
+				.to_string_lossy()
+				.chars()
+				.filter(|x| x.is_ascii_alphanumeric() || '-'.eq(x))
+				.collect();
+
+			// Build up the symbol.
+			let s = parse_as_symbol(&path, &stem, prefix)?;
+
+			// Push it to temporary storage.
+			nice_paths.push((stem, s));
+		}
+
+		// Sort and dedup by stem.
+		nice_paths.sort_by(|a, b| a.0.cmp(&b.0));
+		nice_paths.dedup_by(|a, b| a.0 == b.0);
+
+		// If the length changed, there are duplicates.
+		if nice_paths.len() != len {
+			return Err(SvgError::Duplicate);
+		}
+
+		// Done!
+		Ok(Self {
+			// We can add the children on-the-fly.
+			inner: nice_paths.into_iter().fold(map, |m, (_, s)| m.add(s)),
+			len,
+		})
+	}
+
+	/// # Length.
+	///
+	/// Return the number of children (`symbol` elements).
+	pub(super) const fn len(&self) -> usize { self.len }
+}
+
+
+
+#[derive(Debug, Clone, Copy)]
+/// # Map Hiding Strategy.
+///
+/// SVG maps aren't generally intended for direct display. This enum holds the
+/// different strategies for keeping it that way.
+pub(super) enum HideType {
+	None,
+	Hidden,
+	Offscreen,
+}
+
+
+
+/// # Parse SVG into Symbol.
+///
+/// This parses and somewhat validates an input SVG, returning it as a `Symbol`
+/// suitable for inclusion in the map.
+fn parse_as_symbol(path: &Path, stem: &str, prefix: &str) -> Result<Symbol, SvgError> {
 	// Load the SVG. We'll do this as bytes for now.
-	let mut svg: Vec<u8> = std::fs::read(path)
+	let raw: String = std::fs::read_to_string(path)
 		.map_err(|_| SvgError::Read(path.to_path_buf()))?;
 
 	// Find the start and end ranges.
-	let (start_a, start_b, end) = ranges(&svg).ok_or_else(|| SvgError::Parse(path.to_path_buf()))?;
+	let (start, end) = ranges(raw.as_bytes()).ok_or_else(|| SvgError::Parse(path.to_path_buf()))?;
 
-	// Find the viewBox.
-	let vb = viewbox(&svg[start_a..start_b])
-		.ok_or_else(|| SvgError::Viewbox(path.to_path_buf()))?;
+	// Parse it.
+	let mut events: Vec<Event> = Vec::new();
+	for event in Parser::new(&raw[start..end]) {
+		match event {
+			Event::Error(_) => return Err(SvgError::Parse(path.to_path_buf())),
+			Event::Tag(_, _, _) | Event::Text(_) => { events.push(event); },
+			_ => {},
+		}
+	}
 
-	// Go ahead and chop off the end.
-	svg.truncate(end);
+	// The last event should be a closing SVG tag.
+	match events.pop() {
+		Some(Event::Tag(s, Type::End, _)) if s.eq_ignore_ascii_case("svg") => {},
+		_ => return Err(SvgError::Parse(path.to_path_buf())),
+	}
 
-	// Turn it into a string.
-	let mut svg = String::from_utf8(svg).map_err(|_| SvgError::Parse(path.to_path_buf()))?;
+	// Grab the main element.
+	events.reverse();
+	let mut out = parse_main(events.pop(), path)?
+		.set("id", format!("{}-{}", prefix, stem));
 
-	// Replace the start with a symbol.
-	svg.replace_range(
-		start_a..start_b,
-		&format!(
-			r#"<symbol id="{}-{}" viewBox="{}">"#,
-			prefix,
-			stem,
-			vb,
-		)
-	);
+	// Append the children.
+	while ! events.is_empty() {
+		let next = parse_flat(&mut events)
+			.ok_or_else(|| SvgError::Parse(path.to_path_buf()))?;
+		out.append(next);
+	}
 
-	// Add the closing tag.
-	svg.push_str("</symbol>");
-
-	// Done!
-	Ok(svg)
+	Ok(out)
 }
 
-/// # Find Ranges.
+/// # Flatten Next Element.
 ///
-/// This finds the start and end indexes of the first opening tag, and the
-/// start index of the last closing tag.
+/// This returns the next element, recursing as necessary to capture all its
+/// children.
+fn parse_flat(events: &mut Vec<Event>) -> Option<Element> {
+	let next = events.pop()?;
+	match next {
+		// It already is flat!
+		Event::Tag(name, Type::Empty, attrs) => {
+			let mut out = Element::new(name.to_ascii_lowercase());
+			for (k, v) in attrs {
+				out.assign(k, v);
+			}
+			return Some(out);
+		},
+		Event::Tag(name, Type::Start, attrs) => {
+			return parse_flat2(name.to_ascii_lowercase(), attrs, events);
+		},
+		_ => {},
+	}
+
+	None
+}
+
+/// # Flatten Open Tag.
+///
+/// This builds a flat element beginning from its opening tag and ending with
+/// its closing tag.
+///
+/// If the closing tag is missing, `None` is returned.
+fn parse_flat2(mut name: String, attrs: Attributes, events: &mut Vec<Event>) -> Option<Element> {
+	name.make_ascii_lowercase();
+	let mut out = Element::new(&name);
+	for (k, v) in attrs {
+		out.assign(k, v);
+	}
+
+	let mut closed = false;
+	while let Some(event) = events.pop() {
+		match event {
+			// We found the end!
+			Event::Tag(s, Type::End, _) if s.eq_ignore_ascii_case(&name) => {
+				closed = true;
+				break;
+			},
+			// Text just gets added.
+			Event::Text(s) => {
+				out.append(svg::node::Text::new(s));
+			},
+			// Such tags are only one level deep.
+			Event::Tag(s, Type::Empty, attrs) => {
+				let mut tmp = Element::new(s.to_ascii_lowercase());
+				for (k, v) in attrs {
+					tmp.assign(k, v);
+				}
+				out.append(tmp);
+			},
+			// Recurse.
+			Event::Tag(s, Type::Start, attrs) => {
+				if let Some(tmp) = parse_flat2(s.to_ascii_lowercase(), attrs, events) {
+					out.append(tmp);
+				}
+			},
+			_ => {},
+		}
+	}
+
+	if closed { Some(out) }
+	else { None }
+}
+
+/// # Parse Main.
+///
+/// This parses the outer SVG element, ensuring it has a `viewBox`. If it
+/// doesn't, `None` is returned.
+fn parse_main(event: Option<Event>, path: &Path) -> Result<Symbol, SvgError> {
+	if let Some(Event::Tag(s, Type::Start, a)) = event {
+		if s.eq_ignore_ascii_case("svg") {
+			let mut out = Symbol::new();
+
+			// Do we have a viewbox?
+			if let Some(vb) = a.get("viewBox").or_else(|| a.get("viewbox")).or_else(|| a.get("VIEWBOX")) {
+				out = out.set("viewBox", vb.clone());
+			}
+			else {
+				let vb = parse_wh(
+					a.get("width").or_else(|| a.get("WIDTH")),
+					a.get("height").or_else(|| a.get("HEIGHT")),
+				)
+					.ok_or_else(|| SvgError::Viewbox(path.to_path_buf()))?;
+
+				out = out.set("viewBox", vb);
+			}
+
+			return Ok(out);
+		}
+	}
+
+	Err(SvgError::Parse(path.to_path_buf()))
+}
+
+/// # Parse Width/Height.
+///
+/// This attempts to build a `viewBox` value from a `width` and `height`,
+/// returning `None` if either is missing or non-positive.
+fn parse_wh(w1: Option<&Value>, h1: Option<&Value>) -> Option<String> {
+	let w1 = w1?.to_string();
+	let h1 = h1?.to_string();
+
+	let w2 = w1.trim_matches(|c: char| ! matches!(c, '0'..='9' | '.' | '-'));
+	let h2 = h1.trim_matches(|c: char| ! matches!(c, '0'..='9' | '.' | '-'));
+
+	let w3 = w2.parse::<f32>().ok()?;
+	let h3 = h2.parse::<f32>().ok()?;
+
+	// If they're both positive, we're good.
+	if 0.0 < w3 && 0.0 < h3 {
+		Some(["0 0 ", w2, " ", h2].concat())
+	}
+	else { None }
+}
+
+/// # Find Range.
+///
+/// This returns the start byte for the first opening SVG tag and the end byte
+/// of the last closing SVG tag.
 ///
 /// There are a few gotchas to be aware of:
 /// * The opening SVG element must have at least one attribute (`<svg>` is not allowed);
@@ -72,7 +325,7 @@ pub(super) fn parse(path: &Path, prefix: &str) -> Result<String, SvgError> {
 ///
 /// If any of the above fail, or an open or close cannot be found, `None` is
 /// returned.
-fn ranges(src: &[u8]) -> Option<(usize, usize, usize)> {
+fn ranges(src: &[u8]) -> Option<(usize, usize)> {
 	const OPEN: &[u8] = b"<svg ";
 	const CLOSE: &[u8] = b"</svg>";
 
@@ -90,7 +343,7 @@ fn ranges(src: &[u8]) -> Option<(usize, usize, usize)> {
 				// Can't close until we've opened!
 				if closes == opens { return None; }
 				closes += 1;
-				end_a = idx;
+				end_a = idx + 6;
 			}
 			// It's a beginning!
 			else if chunk[..5].eq_ignore_ascii_case(OPEN) {
@@ -104,77 +357,9 @@ fn ranges(src: &[u8]) -> Option<(usize, usize, usize)> {
 
 	// We have to have the same number of opens and closes.
 	if 0 < opens && opens == closes {
-		// We have to find the (non-inclusive) end of the opening tag.
-		let start_b: usize = src.iter().skip(start_a + 5).position(|b| b'>'.eq(b))? + 6 + start_a;
-		if start_b < end_a {
-			return Some((start_a, start_b, end_a));
-		}
+		Some((start_a, end_a))
 	}
-
-	None
-}
-
-/// # Parse or Build Viewbox.
-///
-/// All SVGs in the map must have `viewBox` coordinates. If they're already
-/// present, great!, if not, we'll try to build them from `width`/`height`.
-fn viewbox(src: &[u8]) -> Option<String> {
-	_viewbox(src).or_else(|| _dimensions(src))
-}
-
-/// # Parse Viewbox.
-///
-/// This parses an existing `viewBox` attribute, if any.
-fn _viewbox(src: &[u8]) -> Option<String> {
-	static VB: Lazy<Regex> = Lazy::new(|| Regex::new(r#"(?i)viewbox\s*=\s*('|")\s*([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s*('|")"#).unwrap());
-
-	// Direct hit!
-	let caps = VB.captures(src)?;
-	let mut out = String::new();
-
-	for idx in 2..=5 {
-		let raw = caps.get(idx)
-			.and_then(|m| std::str::from_utf8(&src[m.start()..m.end()]).ok())?;
-
-		// Make sure this is a valid float.
-		let parsed: f32 = raw.parse::<f32>().ok()?;
-		if 0.0 < parsed || idx < 4 {
-			if ! out.is_empty() { out.push(' '); }
-			out.push_str(raw);
-		}
-		else { return None; }
-	}
-
-	Some(out)
-}
-
-/// # Build Viewbox.
-///
-/// This attempts to build a `viewBox` using an existing `width` and `height`.
-/// Both values must be present and greater than zero to be accepted. They
-/// shouldn't have units, but if they do, the units will be stripped off.
-fn _dimensions(src: &[u8]) -> Option<String> {
-	static WH: Lazy<Regex> = Lazy::new(|| Regex::new(r#"(?i)(?P<key>(width|height))\s*=\s*('|")?\s*(?P<value>[\d.]+)[\sa-z%]*('|")?"#).unwrap());
-
-	let mut width: String = String::new();
-	let mut height: String = String::new();
-
-	for caps in WH.captures_iter(src) {
-		let key = caps["key"].to_ascii_lowercase();
-		if key == b"width" {
-			width = String::from_utf8(caps["value"].to_vec()).ok()?;
-			if width.parse::<f32>().ok()? <= 0.0 { return None; }
-		}
-		else if key == b"height" {
-			height = String::from_utf8(caps["value"].to_vec()).ok()?;
-			if height.parse::<f32>().ok()? <= 0.0 { return None; }
-		}
-	}
-
-	if width.is_empty() || height.is_empty() { None }
-	else {
-		Some(["0 0 ", &width, " ", &height].concat())
-	}
+	else { None }
 }
 
 
@@ -184,11 +369,11 @@ mod tests {
 	use super::*;
 
 	#[test]
-	fn test_bounds() {
-		let tests: [(&[u8], Option<(usize, usize, usize)>); 4] = [
-			(include_bytes!("../test-assets/close.svg"), Some((0, 95, 281))),
-			(b"<svg id=foo><svg id=bar></svg></svg>", Some((0, 12, 30))),
-			(b"    <SVG id=foo><svg id=bar></svg></svg>", Some((4, 16, 34))),
+	fn test_ranges() {
+		let tests: [(&[u8], Option<(usize, usize)>); 4] = [
+			(include_bytes!("../test-assets/close.svg"), Some((0, 287))),
+			(b"<svg id=foo><svg id=bar></svg></svg>", Some((0, 36))),
+			(b"    <SVG id=foo><svg id=bar></svg></svg>", Some((4, 40))),
 			(b"<svg id=foo><svg id=bar></svg>", None),
 		];
 
@@ -198,28 +383,42 @@ mod tests {
 	}
 
 	#[test]
-	fn test_dims() {
-		let tests: [(&[u8], Option<String>, Option<String>); 3] = [
+	fn test_wh() {
+		let tests: [(Option<Value>, Option<Value>, Option<String>); 6] = [
 			(
-				br#"<svg xmlns="http://www.w3.org/2000/svg" width="444.819" height="280.371" viewBox="0 0 444.819 280.371">"#,
-				Some(String::from("0 0 444.819 280.371")),
+				Some(Value::from(String::from("444.819"))),
+				Some(Value::from(String::from("280.371"))),
 				Some(String::from("0 0 444.819 280.371")),
 			),
 			(
-				br#"<svg xmlns="http://www.w3.org/2000/svg" width="444.819em" height="280.371%" viewBox="0 0 444.819 -280.371">"#,
+				Some(Value::from(String::from("444.819px"))),
+				Some(Value::from(String::from("280.371%"))),
+				Some(String::from("0 0 444.819 280.371")),
+			),
+			(
+				None, // Missing width.
+				Some(Value::from(String::from("280.371"))),
 				None,
-				Some(String::from("0 0 444.819 280.371")),
 			),
 			(
-				br#"<svg xmlns="http://www.w3.org/2000/svg" height="280.371" viewBox="0 0 444.819 280.371">"#,
-				Some(String::from("0 0 444.819 280.371")),
+				Some(Value::from(String::from("0"))), // Zero width.
+				Some(Value::from(String::from("280.371"))),
+				None,
+			),
+			(
+				Some(Value::from(String::from("apples"))), // Bunk width.
+				Some(Value::from(String::from("280.371"))),
+				None,
+			),
+			(
+				Some(Value::from(String::from("444.819"))),
+				Some(Value::from(String::from("-280.371"))), // Negative height.
 				None,
 			),
 		];
 
-		for (src, ex_vb, ex_wh) in tests {
-			assert_eq!(_viewbox(src), ex_vb);
-			assert_eq!(_dimensions(src), ex_wh);
+		for (w, h, ex) in tests {
+			assert_eq!(parse_wh(w.as_ref(), h.as_ref()), ex);
 		}
 	}
 }

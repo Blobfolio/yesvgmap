@@ -31,54 +31,54 @@ credits-dir = "./"
 [[package.metadata.bashman.switches]]
 short = "-h"
 long = "--help"
-description = "Print help information."
+description = "Print help information and exit."
 
 [[package.metadata.bashman.switches]]
 long = "--hidden"
-description = "Hide with the 'hidden' attribute. Overrides --offscreen if both are set."
+description = "Hide the map using the 'hidden' HTML attribute. This takes priority over --offscreen when both are present."
 
 [[package.metadata.bashman.switches]]
 long = "--offscreen"
-description = "Hide by placing the element offscreen with inline styles."
+description = "Hide the map using inline styles to position it offscreen."
 
 [[package.metadata.bashman.switches]]
 short = "-V"
 long = "--version"
-description = "Print application version."
+description = "Print version information and exit."
 
 [[package.metadata.bashman.options]]
 short = "-l"
 long = "--list"
 label = "<FILE>"
-description = "Read file paths from this text file."
+description = "Read (absolute) file and/or directory paths from this text file, one entry per line."
 path = true
 
 [[package.metadata.bashman.options]]
 long = "--map-class"
-description = "A class attribute value to assign to the map itself. [default: ]"
+description = "Add this class to the generated SVG map. [default: ]"
 label = "<CLASS>"
 
 [[package.metadata.bashman.options]]
 long = "--map-id"
-description = "An ID attribute value to assign to the map itself. [default: ]"
+description = "Add this ID to the generated SVG map. [default: ]"
 label = "<ID>"
 
 [[package.metadata.bashman.options]]
 short = "-o"
 long = "--output"
-description = "A file path to save the generated map to. If not specified, the map will print to STDOUT."
+description = "Save the generated map to this location. If omitted, the map will print to STDOUT instead."
 label = "<FILE>"
 path = true
 
 [[package.metadata.bashman.options]]
 short = "-p"
 long = "--prefix"
-description = "Symbols will be assigned the ID 'prefix-basename'. [default: icon]"
+description = "Set a custom prefix for the IDs of each entry in the map. (IDs look like PREFIX-STEM, where STEM is the alphanumeric portion of the source file name, e.g. 'i-close'.) [default: i]"
 label = "<PREFIX>"
 
 [[package.metadata.bashman.arguments]]
-label = "<SVG(s)…>"
-description = "Any number of files and directories to crawl and crunch."
+label = "<PATH(s)…>"
+description = "One or more file and/or directory paths to crunch and/or (resursively) crawl. Only files with the extension .svg will ultimately be included."
 
 [dependencies]
 argyle = "0.5.*"

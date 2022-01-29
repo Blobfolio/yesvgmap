@@ -169,25 +169,33 @@ USAGE:
     yesvgmap [FLAGS] [OPTIONS] <PATH(S)>
 
 FLAGS:
-    -h, --help                  Prints help information.
-        --hidden                Hide with the "hidden" attribute. Overrides
-                                --offscreen if both are set.
-        --offscreen             Hide by placing the element offscreen with inline
-                                styles.
-    -V, --version               Prints version information.
+    -h, --help                  Print help information and exit.
+        --hidden                Hide the map using the "hidden" HTML attribute.
+                                This takes priority over --offscreen when both
+                                are present.
+        --offscreen             Hide the map using inline styles to position it
+                                offscreen.
+    -V, --version               Print version information and exit.
 
 OPTIONS:
-    -l, --list <FILE>           Read file paths from this list.
-        --map-class <CLASS>     A class attribute value to assign to the map
-                                itself. [default: ]
-        --map-id <ID>           An ID attribute value to assign to the map
-                                itself. [default: ]
-    -o, --output <PATH>         A file path to save the generated map to. If
-                                not specified, the map will print to STDOUT.
+    -l, --list <FILE>           Read (absolute) file and/or directory paths
+                                from this text file, one entry per line.
+        --map-class <CLASS>     Add this class to the generated SVG map.
+                                [default: ]
+        --map-id <ID>           Add this ID to the generated SVG map.
+                                [default: ]
+    -o, --output <PATH>         Save the generated map to this location. If
+                                omitted, the map will print to STDOUT instead.
+    -p, --prefix <STRING>       Set a custom prefix for the IDs of each entry
+                                in the map. (IDs look like PREFIX-STEM, where
+                                STEM is the alphanumeric portion of the source
+                                file name, e.g. "i-close".) [default: i]
 
 ARGS:
-    <PATH(S)>...                One or more files or directories to crunch and
-                                crawl.
+    <PATH(S)>...                One or more file and/or directory paths to
+                                crunch and/or (resursively) crawl. Only files
+                                with the extension .svg will ultimately be
+                                included.
 "#
 	));
 }

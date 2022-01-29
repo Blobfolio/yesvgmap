@@ -1,40 +1,40 @@
-.TH "YESVGMAP" "1" "January 2022" "Yesvgmap v0.3.0" "User Commands"
+.TH "YESVGMAP" "1" "January 2022" "Yesvgmap v0.3.1" "User Commands"
 .SH NAME
-Yesvgmap \- Manual page for yesvgmap v0.3.0.
+Yesvgmap \- Manual page for yesvgmap v0.3.1.
 .SH DESCRIPTION
 Yesvgmap is a CLI tool for building SVG sprite maps from individual SVG images.
 .SS USAGE:
 .TP
-yesvgmap [FLAGS] [OPTIONS] <SVG(s)…>
+yesvgmap [FLAGS] [OPTIONS] <PATH(s)…>
 .SS FLAGS:
 .TP
 \fB\-h\fR, \fB\-\-help\fR
-Print help information.
+Print help information and exit.
 .TP
 \fB\-\-hidden\fR
-Hide with the 'hidden' attribute. Overrides \-\-offscreen if both are set.
+Hide the map using the 'hidden' HTML attribute. This takes priority over \-\-offscreen when both are present.
 .TP
 \fB\-\-offscreen\fR
-Hide by placing the element offscreen with inline styles.
+Hide the map using inline styles to position it offscreen.
 .TP
 \fB\-V\fR, \fB\-\-version\fR
-Print application version.
+Print version information and exit.
 .SS OPTIONS:
 .TP
 \fB\-l\fR, \fB\-\-list\fR <FILE>
-Read file paths from this text file.
+Read (absolute) file and/or directory paths from this text file, one entry per line.
 .TP
 \fB\-\-map\-class\fR <CLASS>
-A class attribute value to assign to the map itself. [default: ]
+Add this class to the generated SVG map. [default: ]
 .TP
 \fB\-\-map\-id\fR <ID>
-An ID attribute value to assign to the map itself. [default: ]
+Add this ID to the generated SVG map. [default: ]
 .TP
 \fB\-o\fR, \fB\-\-output\fR <FILE>
-A file path to save the generated map to. If not specified, the map will print to STDOUT.
+Save the generated map to this location. If omitted, the map will print to STDOUT instead.
 .TP
 \fB\-p\fR, \fB\-\-prefix\fR <PREFIX>
-Symbols will be assigned the ID 'prefix\-basename'. [default: icon]
-.SS <SVG(S)…>:
+Set a custom prefix for the IDs of each entry in the map. (IDs look like PREFIX\-STEM, where STEM is the alphanumeric portion of the source file name, e.g. 'i\-close'.) [default: i]
+.SS <PATH(S)…>:
 .TP
-Any number of files and directories to crawl and crunch.
+One or more file and/or directory paths to crunch and/or (resursively) crawl. Only files with the extension .svg will ultimately be included.

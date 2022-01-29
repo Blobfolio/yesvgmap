@@ -1,7 +1,7 @@
 # Project Dependencies
     Package:   yesvgmap
-    Version:   0.3.0
-    Generated: 2022-01-28 21:59:03 UTC
+    Version:   0.3.1
+    Generated: 2022-01-29 03:51:52 UTC
 
 | Package | Version | Author(s) | License |
 | ---- | ---- | ---- | ---- |
@@ -23,8 +23,8 @@
 | [hermit-abi](https://github.com/hermitcore/libhermit-rs) | 0.1.19 | Stefan Lankes | Apache-2.0 or MIT |
 | [instant](https://github.com/sebcrozet/instant) | 0.1.12 | [sebcrozet](mailto:developer@crozet.re) | BSD-3-Clause |
 | [lazy_static](https://github.com/rust-lang-nursery/lazy-static.rs) | 1.4.0 | [Marvin Löbel](mailto:loebel.marvin@gmail.com) | Apache-2.0 or MIT |
-| [libc](https://github.com/rust-lang/libc) | 0.2.115 | The Rust Project Developers | Apache-2.0 or MIT |
-| [lock_api](https://github.com/Amanieu/parking_lot) | 0.4.5 | [Amanieu d'Antras](mailto:amanieu@gmail.com) | Apache-2.0 or MIT |
+| [libc](https://github.com/rust-lang/libc) | 0.2.116 | The Rust Project Developers | Apache-2.0 or MIT |
+| [lock_api](https://github.com/Amanieu/parking_lot) | 0.4.6 | [Amanieu d'Antras](mailto:amanieu@gmail.com) | Apache-2.0 or MIT |
 | [memoffset](https://github.com/Gilnaa/memoffset) | 0.6.5 | [Gilad Naaman](mailto:gilad.naaman@gmail.com) | MIT |
 | [num-traits](https://github.com/rust-num/num-traits) | 0.2.14 | The Rust Project Developers | Apache-2.0 or MIT |
 | [num_cpus](https://github.com/seanmonstar/num_cpus) | 1.13.1 | [Sean McArthur](mailto:sean@seanmonstar.com) | Apache-2.0 or MIT |

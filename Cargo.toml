@@ -1,11 +1,11 @@
 [package]
 name = "yesvgmap"
-version = "0.3.1"
+version = "0.3.2"
 license = "WTFPL"
 authors = ["Josh Stoik <josh@blobfolio.com>"]
 edition = "2021"
 rust-version = "1.56"
-description = "Yesvgmap is a CLI tool for building SVG sprite maps from individual SVG images."
+description = "Generate SVG sprite maps from individual SVG images."
 repository = "https://github.com/Blobfolio/yesvgmap"
 publish = false
 
@@ -15,7 +15,8 @@ copyright = "2022, Blobfolio, LLC <hello@blobfolio.com>"
 license-file = ["./LICENSE", "0"]
 revision = "1"
 depends = "$auto"
-section = "utility"
+section = "graphics"
+extended-description = ""
 assets = [
     ["./target/x86_64-unknown-linux-gnu/release/yesvgmap", "usr/bin/", "755"],
     ["./release/completions/yesvgmap.bash", "etc/bash_completion.d/", "644"],

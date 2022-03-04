@@ -213,8 +213,18 @@ fn has_styles(src: &[Event]) -> bool {
 			else { None }
 		)
 		.any(|(name, attrs)|
-			matches!(name.to_ascii_lowercase().as_str(), "script" | "style") ||
-			attrs.keys().any(|k| matches!(k.to_ascii_lowercase().as_str(), "class" | "id"))
+			match name.len() {
+				5 => name.eq_ignore_ascii_case("style"),
+				6 => name.eq_ignore_ascii_case("script"),
+				_ => false,
+			} ||
+			attrs.keys().any(|k|
+				match k.len() {
+					2 => k.eq_ignore_ascii_case("id"),
+					5 => k.eq_ignore_ascii_case("class") || k.eq_ignore_ascii_case("style"),
+					_ => k.starts_with("on"),
+				}
+			)
 		)
 }
 

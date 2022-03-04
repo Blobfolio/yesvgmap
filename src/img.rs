@@ -147,9 +147,9 @@ impl Map {
 
 		// Mention any potential style/class issues.
 		if ! warned.is_empty() {
-			Msg::warning("The following SVG(s) contain styles, classes, and/or IDs that might not work
-correctly when embedded in a sprite map. If you experience issues, remove those
-elements from the source(s), then regenerate the map.")
+			Msg::warning("The following SVG(s) contain scripts, styles, classes, and/or IDs that might
+not work correctly when embedded in a sprite map. If you experience issues,
+remove those elements from the source(s), then regenerate the map.")
 				.print();
 
 			warned.sort();

@@ -3,6 +3,7 @@
 */
 
 use crate::SvgError;
+use fyi_msg::Msg;
 use std::{
 	fmt,
 	path::{
@@ -36,6 +37,7 @@ use svg::{
 /// This holds an `svg` element with some number of `symbol` children.
 pub(super) struct Map {
 	inner: SVG,
+	hide: HideType,
 	len: usize,
 }
 
@@ -44,11 +46,31 @@ impl fmt::Display for Map {
 	///
 	/// This emits SVG code, slightly compressed.
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		f.write_str(
-			&self.inner.to_string()
-				.replace(" hidden=\"true\"", " hidden")
-				.replace(">\n<", "><")
-		)
+		// Stringify the SVG.
+		let mut raw = self.inner.to_string();
+
+		// The hidden attribute shouldn't have a "true" attached to it.
+		if matches!(self.hide, HideType::Hidden) {
+			if let Some(pos) = raw.find(" hidden=\"true\"") {
+				raw.replace_range(pos+7..pos+14, "");
+			}
+		}
+
+		// Clean up whitespace a bit.
+		let mut out = String::with_capacity(raw.len());
+		let mut last = '?';
+		let mut iter = raw.chars().peekable();
+		while let Some(c) = iter.next() {
+			if  c == '\n' && (last == '>' || iter.peek() == Some(&'<')) {
+				continue;
+			}
+
+			last = c;
+			out.push(c);
+		}
+
+		// Print it!
+		f.write_str(&out)
 	}
 }
 
@@ -89,6 +111,7 @@ impl Map {
 		}
 
 		// Handle the paths!
+		let mut warned: Vec<String> = Vec::new();
 		let len: usize = paths.len();
 		let mut nice_paths: Vec<(String, Symbol)> = Vec::with_capacity(len);
 		for path in paths {
@@ -102,10 +125,15 @@ impl Map {
 				.collect();
 
 			// Build up the symbol.
-			let s = parse_as_symbol(&path, &stem, prefix)?;
+			let (s, warn) = parse_as_symbol(&path, &stem, prefix)?;
 
 			// Push it to temporary storage.
 			nice_paths.push((stem, s));
+
+			// Note if this has styles or other issues.
+			if warn {
+				warned.push(path.file_name().unwrap().to_string_lossy().into_owned());
+			}
 		}
 
 		// Sort and dedup by stem.
@@ -117,10 +145,26 @@ impl Map {
 			return Err(SvgError::Duplicate);
 		}
 
+		// Mention any potential style/class issues.
+		if ! warned.is_empty() {
+			Msg::warning("The following SVG(s) contain scripts, styles, classes, and/or IDs that might
+not work correctly when embedded in a sprite map. If you experience issues,
+remove those elements from the source(s), then regenerate the map.")
+				.print();
+
+			warned.sort();
+			for w in warned {
+				println!("    \x1b[1;95m•\x1b[0m {}", w);
+			}
+
+			println!();
+		}
+
 		// Done!
 		Ok(Self {
 			// We can add the children on-the-fly.
 			inner: nice_paths.into_iter().fold(map, |m, (_, s)| m.add(s)),
+			hide,
 			len,
 		})
 	}
@@ -146,11 +190,50 @@ pub(super) enum HideType {
 
 
 
+/// # Is Empty Element?
+fn is_empty(src: &Element) -> bool {
+	src.get_attributes().is_empty() &&
+	src.get_children().is_empty() &&
+	matches!(
+		src.get_name().as_str(),
+		"a" | "defs" | "glyph" | "g" | "marker" | "mask" | "missing-glyph" |
+		"pattern" | "script" | "style" | "switch"
+	)
+}
+
+/// # Check for Styles, Classes, IDs.
+///
+/// Styles, classes, and IDs inside of SVGs have a habit of colliding with one
+/// another, particularly in map contexts. This method looks to see if there
+/// are any so we can issue a warning.
+fn has_styles(src: &[Event]) -> bool {
+	src.iter()
+		.filter_map(|e|
+			if let Event::Tag(name, _, attrs) = e { Some((name, attrs)) }
+			else { None }
+		)
+		.any(|(name, attrs)|
+			match name.len() {
+				5 => name.eq_ignore_ascii_case("style"),
+				6 => name.eq_ignore_ascii_case("script"),
+				_ => false,
+			} ||
+			attrs.keys().any(|k|
+				match k.len() {
+					2 => k.eq_ignore_ascii_case("id"),
+					5 => k.eq_ignore_ascii_case("class") || k.eq_ignore_ascii_case("style"),
+					_ => k.starts_with("on"),
+				}
+			)
+		)
+}
+
 /// # Parse SVG into Symbol.
 ///
 /// This parses and somewhat validates an input SVG, returning it as a `Symbol`
 /// suitable for inclusion in the map.
-fn parse_as_symbol(path: &Path, stem: &str, prefix: &str) -> Result<Symbol, SvgError> {
+fn parse_as_symbol(path: &Path, stem: &str, prefix: &str)
+-> Result<(Symbol, bool), SvgError> {
 	// Load the SVG. We'll do this as bytes for now.
 	let raw: String = std::fs::read_to_string(path)
 		.map_err(|_| SvgError::Read(path.to_path_buf()))?;
@@ -179,14 +262,19 @@ fn parse_as_symbol(path: &Path, stem: &str, prefix: &str) -> Result<Symbol, SvgE
 	let mut out = parse_main(events.pop(), path)?
 		.set("id", format!("{}-{}", prefix, stem));
 
+	// Check for styles, classes, and IDs that may cause issues.
+	let warn = has_styles(&events);
+
 	// Append the children.
 	while ! events.is_empty() {
 		let next = parse_flat(&mut events)
 			.ok_or_else(|| SvgError::Parse(path.to_path_buf()))?;
-		out.append(next);
+		if ! is_empty(&next) {
+			out.append(next);
+		}
 	}
 
-	Ok(out)
+	Ok((out, warn))
 }
 
 /// # Flatten Next Element.
@@ -202,15 +290,12 @@ fn parse_flat(events: &mut Vec<Event>) -> Option<Element> {
 			for (k, v) in attrs {
 				out.assign(k, v);
 			}
-			return Some(out);
+			Some(out)
 		},
-		Event::Tag(name, Type::Start, attrs) => {
-			return parse_flat2(name.to_ascii_lowercase(), attrs, events);
-		},
-		_ => {},
+		Event::Tag(name, Type::Start, attrs) =>
+			parse_flat2(name.to_ascii_lowercase(), attrs, events),
+		_ => None,
 	}
-
-	None
 }
 
 /// # Flatten Open Tag.
@@ -236,7 +321,10 @@ fn parse_flat2(mut name: String, attrs: Attributes, events: &mut Vec<Event>) -> 
 			},
 			// Text just gets added.
 			Event::Text(s) => {
-				out.append(svg::node::Text::new(s));
+				let s = s.trim();
+				if ! s.is_empty() {
+					out.append(svg::node::Text::new(s));
+				}
 			},
 			// Such tags are only one level deep.
 			Event::Tag(s, Type::Empty, attrs) => {
@@ -244,12 +332,12 @@ fn parse_flat2(mut name: String, attrs: Attributes, events: &mut Vec<Event>) -> 
 				for (k, v) in attrs {
 					tmp.assign(k, v);
 				}
-				out.append(tmp);
+				if ! is_empty(&tmp) { out.append(tmp); }
 			},
 			// Recurse.
 			Event::Tag(s, Type::Start, attrs) => {
 				if let Some(tmp) = parse_flat2(s.to_ascii_lowercase(), attrs, events) {
-					out.append(tmp);
+					if ! is_empty(&tmp) { out.append(tmp); }
 				}
 			},
 			_ => {},
@@ -420,5 +508,61 @@ mod tests {
 		for (w, h, ex) in tests {
 			assert_eq!(parse_wh(w.as_ref(), h.as_ref()), ex);
 		}
+	}
+
+	fn has_styles_wrapper(raw: &str) -> bool {
+		// Find the start and end ranges.
+		let (start, end) = ranges(raw.as_bytes())
+			.expect("Failed to parse SVG.");
+
+		// Parse it.
+		let mut events: Vec<Event> = Vec::new();
+		for event in Parser::new(&raw[start..end]) {
+			match event {
+				Event::Error(_) => panic!("Failed to parse SVG."),
+				Event::Tag(_, _, _) | Event::Text(_) => { events.push(event); },
+				_ => {},
+			}
+		}
+
+		// The last event should be a closing SVG tag.
+		match events.pop() {
+			Some(Event::Tag(s, Type::End, _)) if s.eq_ignore_ascii_case("svg") => {},
+			_ => panic!("Failed to parse SVG."),
+		}
+
+		// Grab the main element.
+		events.reverse();
+		events.pop();
+
+		// Actually check the styles!
+		has_styles(&events)
+	}
+
+	#[test]
+	fn test_styles() {
+		assert_eq!(
+			has_styles_wrapper(include_str!("../test-assets/arrow-1.svg")),
+			true,
+			"Missed styles for arrow-1.svg."
+		);
+
+		assert_eq!(
+			has_styles_wrapper(include_str!("../test-assets/arrow-2.svg")),
+			true,
+			"Missed styles for arrow-2.svg."
+		);
+
+		assert_eq!(
+			has_styles_wrapper(include_str!("../test-assets/arrow-3.svg")),
+			true,
+			"Missed styles for arrow-3.svg."
+		);
+
+		assert_eq!(
+			has_styles_wrapper(include_str!("../test-assets/bitcoin.svg")),
+			false,
+			"False positive styles for bitcoin.svg."
+		);
 	}
 }

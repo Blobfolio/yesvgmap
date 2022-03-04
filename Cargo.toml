@@ -1,12 +1,13 @@
 [package]
 name = "yesvgmap"
-version = "0.3.2"
+version = "0.3.3"
 license = "WTFPL"
 authors = ["Josh Stoik <josh@blobfolio.com>"]
 edition = "2021"
 rust-version = "1.56"
 description = "Generate SVG sprite maps from individual SVG images."
 repository = "https://github.com/Blobfolio/yesvgmap"
+readme = "README.md"
 publish = false
 
 [package.metadata.deb]

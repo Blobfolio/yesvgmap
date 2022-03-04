@@ -37,6 +37,7 @@ use svg::{
 /// This holds an `svg` element with some number of `symbol` children.
 pub(super) struct Map {
 	inner: SVG,
+	hide: HideType,
 	len: usize,
 }
 
@@ -45,11 +46,31 @@ impl fmt::Display for Map {
 	///
 	/// This emits SVG code, slightly compressed.
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		f.write_str(
-			&self.inner.to_string()
-				.replace(" hidden=\"true\"", " hidden")
-				.replace(">\n<", "><")
-		)
+		// Stringify the SVG.
+		let mut raw = self.inner.to_string();
+
+		// The hidden attribute shouldn't have a "true" attached to it.
+		if matches!(self.hide, HideType::Hidden) {
+			if let Some(pos) = raw.find(" hidden=\"true\"") {
+				raw.replace_range(pos+7..pos+14, "");
+			}
+		}
+
+		// Clean up whitespace a bit.
+		let mut out = String::with_capacity(raw.len());
+		let mut last = '?';
+		let mut iter = raw.chars().peekable();
+		while let Some(c) = iter.next() {
+			if  c == '\n' && (last == '>' || iter.peek() == Some(&'<')) {
+				continue;
+			}
+
+			last = c;
+			out.push(c);
+		}
+
+		// Print it!
+		f.write_str(&out)
 	}
 }
 
@@ -143,6 +164,7 @@ elements from the source(s), then regenerate the map.")
 		Ok(Self {
 			// We can add the children on-the-fly.
 			inner: nice_paths.into_iter().fold(map, |m, (_, s)| m.add(s)),
+			hide,
 			len,
 		})
 	}
@@ -167,6 +189,34 @@ pub(super) enum HideType {
 }
 
 
+
+/// # Is Empty Element?
+fn is_empty(src: &Element) -> bool {
+	src.get_attributes().is_empty() &&
+	src.get_children().is_empty() &&
+	matches!(
+		src.get_name().as_str(),
+		"a" | "defs" | "glyph" | "g" | "marker" | "mask" | "missing-glyph" |
+		"pattern" | "script" | "style" | "switch"
+	)
+}
+
+/// # Check for Styles, Classes, IDs.
+///
+/// Styles, classes, and IDs inside of SVGs have a habit of colliding with one
+/// another, particularly in map contexts. This method looks to see if there
+/// are any so we can issue a warning.
+fn has_styles(src: &[Event]) -> bool {
+	src.iter()
+		.filter_map(|e|
+			if let Event::Tag(name, _, attrs) = e { Some((name, attrs)) }
+			else { None }
+		)
+		.any(|(name, attrs)|
+			matches!(name.to_ascii_lowercase().as_str(), "script" | "style") ||
+			attrs.keys().any(|k| matches!(k.to_ascii_lowercase().as_str(), "class" | "id"))
+		)
+}
 
 /// # Parse SVG into Symbol.
 ///
@@ -209,27 +259,12 @@ fn parse_as_symbol(path: &Path, stem: &str, prefix: &str)
 	while ! events.is_empty() {
 		let next = parse_flat(&mut events)
 			.ok_or_else(|| SvgError::Parse(path.to_path_buf()))?;
-		out.append(next);
+		if ! is_empty(&next) {
+			out.append(next);
+		}
 	}
 
 	Ok((out, warn))
-}
-
-/// # Check for Styles, Classes, IDs.
-///
-/// Styles, classes, and IDs inside of SVGs have a habit of colliding with one
-/// another, particularly in map contexts. This method looks to see if there
-/// are any so we can issue a warning.
-fn has_styles(src: &[Event]) -> bool {
-	src.iter()
-		.filter_map(|e|
-			if let Event::Tag(name, _, attrs) = e { Some((name, attrs)) }
-			else { None }
-		)
-		.any(|(name, attrs)|
-			name.eq_ignore_ascii_case("style") ||
-			attrs.keys().any(|k| k.eq_ignore_ascii_case("id") || k.eq_ignore_ascii_case("class"))
-		)
 }
 
 /// # Flatten Next Element.
@@ -245,15 +280,12 @@ fn parse_flat(events: &mut Vec<Event>) -> Option<Element> {
 			for (k, v) in attrs {
 				out.assign(k, v);
 			}
-			return Some(out);
+			Some(out)
 		},
-		Event::Tag(name, Type::Start, attrs) => {
-			return parse_flat2(name.to_ascii_lowercase(), attrs, events);
-		},
-		_ => {},
+		Event::Tag(name, Type::Start, attrs) =>
+			parse_flat2(name.to_ascii_lowercase(), attrs, events),
+		_ => None,
 	}
-
-	None
 }
 
 /// # Flatten Open Tag.
@@ -279,7 +311,10 @@ fn parse_flat2(mut name: String, attrs: Attributes, events: &mut Vec<Event>) -> 
 			},
 			// Text just gets added.
 			Event::Text(s) => {
-				out.append(svg::node::Text::new(s));
+				let s = s.trim();
+				if ! s.is_empty() {
+					out.append(svg::node::Text::new(s));
+				}
 			},
 			// Such tags are only one level deep.
 			Event::Tag(s, Type::Empty, attrs) => {
@@ -287,12 +322,12 @@ fn parse_flat2(mut name: String, attrs: Attributes, events: &mut Vec<Event>) -> 
 				for (k, v) in attrs {
 					tmp.assign(k, v);
 				}
-				out.append(tmp);
+				if ! is_empty(&tmp) { out.append(tmp); }
 			},
 			// Recurse.
 			Event::Tag(s, Type::Start, attrs) => {
 				if let Some(tmp) = parse_flat2(s.to_ascii_lowercase(), attrs, events) {
-					out.append(tmp);
+					if ! is_empty(&tmp) { out.append(tmp); }
 				}
 			},
 			_ => {},

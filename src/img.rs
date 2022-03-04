@@ -3,6 +3,7 @@
 */
 
 use crate::SvgError;
+use fyi_msg::Msg;
 use std::{
 	fmt,
 	path::{
@@ -89,6 +90,7 @@ impl Map {
 		}
 
 		// Handle the paths!
+		let mut warned: Vec<String> = Vec::new();
 		let len: usize = paths.len();
 		let mut nice_paths: Vec<(String, Symbol)> = Vec::with_capacity(len);
 		for path in paths {
@@ -102,10 +104,15 @@ impl Map {
 				.collect();
 
 			// Build up the symbol.
-			let s = parse_as_symbol(&path, &stem, prefix)?;
+			let (s, warn) = parse_as_symbol(&path, &stem, prefix)?;
 
 			// Push it to temporary storage.
 			nice_paths.push((stem, s));
+
+			// Note if this has styles or other issues.
+			if warn {
+				warned.push(path.file_name().unwrap().to_string_lossy().into_owned());
+			}
 		}
 
 		// Sort and dedup by stem.
@@ -115,6 +122,21 @@ impl Map {
 		// If the length changed, there are duplicates.
 		if nice_paths.len() != len {
 			return Err(SvgError::Duplicate);
+		}
+
+		// Mention any potential style/class issues.
+		if ! warned.is_empty() {
+			Msg::warning("The following SVG(s) contain styles, classes, and/or IDs that might not work
+correctly when embedded in a sprite map. If you experience issues, remove those
+elements from the source(s), then regenerate the map.")
+				.print();
+
+			warned.sort();
+			for w in warned {
+				println!("    \x1b[1;95m•\x1b[0m {}", w);
+			}
+
+			println!();
 		}
 
 		// Done!
@@ -150,7 +172,8 @@ pub(super) enum HideType {
 ///
 /// This parses and somewhat validates an input SVG, returning it as a `Symbol`
 /// suitable for inclusion in the map.
-fn parse_as_symbol(path: &Path, stem: &str, prefix: &str) -> Result<Symbol, SvgError> {
+fn parse_as_symbol(path: &Path, stem: &str, prefix: &str)
+-> Result<(Symbol, bool), SvgError> {
 	// Load the SVG. We'll do this as bytes for now.
 	let raw: String = std::fs::read_to_string(path)
 		.map_err(|_| SvgError::Read(path.to_path_buf()))?;
@@ -179,6 +202,9 @@ fn parse_as_symbol(path: &Path, stem: &str, prefix: &str) -> Result<Symbol, SvgE
 	let mut out = parse_main(events.pop(), path)?
 		.set("id", format!("{}-{}", prefix, stem));
 
+	// Check for styles, classes, and IDs that may cause issues.
+	let warn = has_styles(&events);
+
 	// Append the children.
 	while ! events.is_empty() {
 		let next = parse_flat(&mut events)
@@ -186,7 +212,24 @@ fn parse_as_symbol(path: &Path, stem: &str, prefix: &str) -> Result<Symbol, SvgE
 		out.append(next);
 	}
 
-	Ok(out)
+	Ok((out, warn))
+}
+
+/// # Check for Styles, Classes, IDs.
+///
+/// Styles, classes, and IDs inside of SVGs have a habit of colliding with one
+/// another, particularly in map contexts. This method looks to see if there
+/// are any so we can issue a warning.
+fn has_styles(src: &[Event]) -> bool {
+	src.iter()
+		.filter_map(|e|
+			if let Event::Tag(name, _, attrs) = e { Some((name, attrs)) }
+			else { None }
+		)
+		.any(|(name, attrs)|
+			name.eq_ignore_ascii_case("style") ||
+			attrs.keys().any(|k| k.eq_ignore_ascii_case("id") || k.eq_ignore_ascii_case("class"))
+		)
 }
 
 /// # Flatten Next Element.
@@ -420,5 +463,61 @@ mod tests {
 		for (w, h, ex) in tests {
 			assert_eq!(parse_wh(w.as_ref(), h.as_ref()), ex);
 		}
+	}
+
+	fn has_styles_wrapper(raw: &str) -> bool {
+		// Find the start and end ranges.
+		let (start, end) = ranges(raw.as_bytes())
+			.expect("Failed to parse SVG.");
+
+		// Parse it.
+		let mut events: Vec<Event> = Vec::new();
+		for event in Parser::new(&raw[start..end]) {
+			match event {
+				Event::Error(_) => panic!("Failed to parse SVG."),
+				Event::Tag(_, _, _) | Event::Text(_) => { events.push(event); },
+				_ => {},
+			}
+		}
+
+		// The last event should be a closing SVG tag.
+		match events.pop() {
+			Some(Event::Tag(s, Type::End, _)) if s.eq_ignore_ascii_case("svg") => {},
+			_ => panic!("Failed to parse SVG."),
+		}
+
+		// Grab the main element.
+		events.reverse();
+		events.pop();
+
+		// Actually check the styles!
+		has_styles(&events)
+	}
+
+	#[test]
+	fn test_styles() {
+		assert_eq!(
+			has_styles_wrapper(include_str!("../test-assets/arrow-1.svg")),
+			true,
+			"Missed styles for arrow-1.svg."
+		);
+
+		assert_eq!(
+			has_styles_wrapper(include_str!("../test-assets/arrow-2.svg")),
+			true,
+			"Missed styles for arrow-2.svg."
+		);
+
+		assert_eq!(
+			has_styles_wrapper(include_str!("../test-assets/arrow-3.svg")),
+			true,
+			"Missed styles for arrow-3.svg."
+		);
+
+		assert_eq!(
+			has_styles_wrapper(include_str!("../test-assets/bitcoin.svg")),
+			false,
+			"False positive styles for bitcoin.svg."
+		);
 	}
 }

@@ -51,10 +51,7 @@ use img::{
 use std::{
 	ffi::OsStr,
 	os::unix::ffi::OsStrExt,
-	path::{
-		Path,
-		PathBuf,
-	},
+	path::PathBuf,
 };
 
 
@@ -114,9 +111,10 @@ fn _main() -> Result<(), SvgError> {
 		class,
 		hide,
 		prefix,
-		Dowser::filtered(|p: &Path| Extension::try_from3(p).map_or(false, |e| e == E_SVG))
+		Dowser::default()
 			.with_paths(args.args().iter().map(|x| OsStr::from_bytes(x)))
-			.into_vec()
+			.filter(|p| Some(E_SVG) == Extension::try_from3(p))
+			.collect()
 	)?;
 
 	// Save it to a file.

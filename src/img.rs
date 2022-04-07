@@ -389,11 +389,8 @@ fn parse_wh(w1: Option<&Value>, h1: Option<&Value>) -> Option<String> {
 	let w2 = w1.trim_matches(|c: char| ! matches!(c, '0'..='9' | '.' | '-'));
 	let h2 = h1.trim_matches(|c: char| ! matches!(c, '0'..='9' | '.' | '-'));
 
-	let w3 = w2.parse::<f32>().ok()?;
-	let h3 = h2.parse::<f32>().ok()?;
-
 	// If they're both positive, we're good.
-	if 0.0 < w3 && 0.0 < h3 {
+	if 0.0 < w2.parse::<f32>().ok()? && 0.0 < h2.parse::<f32>().ok()? {
 		Some(["0 0 ", w2, " ", h2].concat())
 	}
 	else { None }

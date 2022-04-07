@@ -1,29 +1,29 @@
 # Project Dependencies
     Package:   yesvgmap
-    Version:   0.3.3
-    Generated: 2022-03-04 22:14:55 UTC
+    Version:   0.3.4
+    Generated: 2022-04-07 16:21:37 UTC
 
 | Package | Version | Author(s) | License |
 | ---- | ---- | ---- | ---- |
 | [ahash](https://github.com/tkaitchuck/ahash) | 0.7.6 | [Tom Kaitchuck](mailto:Tom.Kaitchuck@gmail.com) | Apache-2.0 or MIT |
-| [argyle](https://github.com/Blobfolio/argyle) | 0.5.2 | [Blobfolio, LLC.](mailto:hello@blobfolio.com) | WTFPL |
+| [argyle](https://github.com/Blobfolio/argyle) | 0.5.3 | [Blobfolio, LLC.](mailto:hello@blobfolio.com) | WTFPL |
 | [cfg-if](https://github.com/alexcrichton/cfg-if) | 1.0.0 | [Alex Crichton](mailto:alex@alexcrichton.com) | Apache-2.0 or MIT |
-| [crossbeam-channel](https://github.com/crossbeam-rs/crossbeam) | 0.5.2 |  | Apache-2.0 or MIT |
+| [crossbeam-channel](https://github.com/crossbeam-rs/crossbeam) | 0.5.4 |  | Apache-2.0 or MIT |
 | [crossbeam-deque](https://github.com/crossbeam-rs/crossbeam) | 0.8.1 | The Crossbeam Project Developers | Apache-2.0 or MIT |
-| [crossbeam-epoch](https://github.com/crossbeam-rs/crossbeam) | 0.9.7 |  | Apache-2.0 or MIT |
-| [crossbeam-utils](https://github.com/crossbeam-rs/crossbeam) | 0.8.7 |  | Apache-2.0 or MIT |
-| [dactyl](https://github.com/Blobfolio/dactyl) | 0.2.4 | [Blobfolio, LLC.](mailto:hello@blobfolio.com) | WTFPL |
-| [dowser](https://github.com/Blobfolio/dowser) | 0.3.6 | [Blobfolio, LLC.](mailto:hello@blobfolio.com) | WTFPL |
+| [crossbeam-epoch](https://github.com/crossbeam-rs/crossbeam) | 0.9.8 |  | Apache-2.0 or MIT |
+| [crossbeam-utils](https://github.com/crossbeam-rs/crossbeam) | 0.8.8 |  | Apache-2.0 or MIT |
+| [dactyl](https://github.com/Blobfolio/dactyl) | 0.3.3 | [Blobfolio, LLC.](mailto:hello@blobfolio.com) | WTFPL |
+| [dowser](https://github.com/Blobfolio/dowser) | 0.4.5 | [Blobfolio, LLC.](mailto:hello@blobfolio.com) | WTFPL |
 | [either](https://github.com/bluss/either) | 1.6.1 | bluss | Apache-2.0 or MIT |
 | [fastrand](https://github.com/smol-rs/fastrand) | 1.7.0 | [Stjepan Glavina](mailto:stjepang@gmail.com) | Apache-2.0 or MIT |
-| [fyi_msg](https://github.com/Blobfolio/fyi) | 0.9.5 | [Blobfolio, LLC.](mailto:hello@blobfolio.com) | WTFPL |
+| [fyi_msg](https://github.com/Blobfolio/fyi) | 0.9.7 | [Blobfolio, LLC.](mailto:hello@blobfolio.com) | WTFPL |
 | [lazy_static](https://github.com/rust-lang-nursery/lazy-static.rs) | 1.4.0 | [Marvin Löbel](mailto:loebel.marvin@gmail.com) | Apache-2.0 or MIT |
-| [lock_api](https://github.com/Amanieu/parking_lot) | 0.4.6 | [Amanieu d'Antras](mailto:amanieu@gmail.com) | Apache-2.0 or MIT |
+| [lock_api](https://github.com/Amanieu/parking_lot) | 0.4.7 | [Amanieu d'Antras](mailto:amanieu@gmail.com) | Apache-2.0 or MIT |
 | [memoffset](https://github.com/Gilnaa/memoffset) | 0.6.5 | [Gilad Naaman](mailto:gilad.naaman@gmail.com) | MIT |
 | [num-traits](https://github.com/rust-num/num-traits) | 0.2.14 | The Rust Project Developers | Apache-2.0 or MIT |
 | [num_cpus](https://github.com/seanmonstar/num_cpus) | 1.13.1 | [Sean McArthur](mailto:sean@seanmonstar.com) | Apache-2.0 or MIT |
 | [parking_lot](https://github.com/Amanieu/parking_lot) | 0.12.0 | [Amanieu d'Antras](mailto:amanieu@gmail.com) | Apache-2.0 or MIT |
-| [parking_lot_core](https://github.com/Amanieu/parking_lot) | 0.9.1 | [Amanieu d'Antras](mailto:amanieu@gmail.com) | Apache-2.0 or MIT |
+| [parking_lot_core](https://github.com/Amanieu/parking_lot) | 0.9.2 | [Amanieu d'Antras](mailto:amanieu@gmail.com) | Apache-2.0 or MIT |
 | [rayon](https://github.com/rayon-rs/rayon) | 1.5.1 | [Niko Matsakis](mailto:niko@alum.mit.edu) and [Josh Stone](mailto:cuviper@gmail.com) | Apache-2.0 or MIT |
 | [rayon-core](https://github.com/rayon-rs/rayon) | 1.9.1 | [Niko Matsakis](mailto:niko@alum.mit.edu) and [Josh Stone](mailto:cuviper@gmail.com) | Apache-2.0 or MIT |
 | [remove_dir_all](https://github.com/XAMPPRocky/remove_dir_all.git) | 0.5.3 | [Aaronepower](mailto:theaaronepower@gmail.com) | Apache-2.0 or MIT |

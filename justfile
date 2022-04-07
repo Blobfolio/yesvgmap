@@ -24,14 +24,12 @@ cargo_bin   := cargo_dir + "/x86_64-unknown-linux-gnu/release/" + pkg_id
 doc_dir     := justfile_directory() + "/doc"
 release_dir := justfile_directory() + "/release"
 
-rustflags   := "-C link-arg=-s"
-
 
 
 # Build Release!
 @build:
 	# First let's build the Rust bit.
-	RUSTFLAGS="--emit asm {{ rustflags }}" cargo build \
+	RUSTFLAGS="--emit asm" cargo build \
 		--bin "{{ pkg_id }}" \
 		--release \
 		--target x86_64-unknown-linux-gnu \
@@ -54,10 +52,34 @@ rustflags   := "-C link-arg=-s"
 	mv "{{ justfile_directory() }}/target" "{{ cargo_dir }}"
 
 
+@build-pgo: clean
+	[ ! -d "/tmp/pgo-data" ] || rm -rf /tmp/pgo-data
+
+	RUSTFLAGS="-Cprofile-generate=/tmp/pgo-data" cargo build \
+		--bin "{{ pkg_id }}" \
+		--release \
+		--target x86_64-unknown-linux-gnu \
+		--target-dir "{{ cargo_dir }}"
+
+	"{{ cargo_bin }}" "{{ justfile_directory() }}/test-assets"
+	"{{ cargo_bin }}" --hidden "{{ justfile_directory() }}/test-assets"
+	"{{ cargo_bin }}" --offscreen -o /tmp/foo.svg "{{ justfile_directory() }}/test-assets"
+	rm /tmp/foo.svg
+
+	/usr/local/rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/llvm-profdata \
+		merge -o /tmp/pgo-data/merged.profdata /tmp/pgo-data
+
+	RUSTFLAGS="-Cprofile-use=/tmp/pgo-data/merged.profdata -Cllvm-args=-pgo-warn-missing-function" cargo build \
+		--bin "{{ pkg_id }}" \
+		--release \
+		--target x86_64-unknown-linux-gnu \
+		--target-dir "{{ cargo_dir }}"
+
+
 # Check Release!
 @check:
 	# First let's build the Rust bit.
-	RUSTFLAGS="{{ rustflags }}" cargo check \
+	cargo check \
 		--release \
 		--target x86_64-unknown-linux-gnu \
 		--target-dir "{{ cargo_dir }}"
@@ -76,7 +98,7 @@ rustflags   := "-C link-arg=-s"
 # Clippy.
 @clippy:
 	clear
-	RUSTFLAGS="{{ rustflags }}" cargo clippy \
+	cargo clippy \
 		--release \
 		--all-features \
 		--target x86_64-unknown-linux-gnu \
@@ -106,7 +128,7 @@ rustflags   := "-C link-arg=-s"
 
 # Test Run.
 @run +ARGS:
-	RUSTFLAGS="{{ rustflags }}" cargo run \
+	cargo run \
 		--bin "{{ pkg_id }}" \
 		--release \
 		--target x86_64-unknown-linux-gnu \

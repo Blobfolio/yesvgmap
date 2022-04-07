@@ -48,14 +48,7 @@ use img::{
 	HideType,
 	Map,
 };
-use std::{
-	ffi::OsStr,
-	os::unix::ffi::OsStrExt,
-	path::{
-		Path,
-		PathBuf,
-	},
-};
+use std::path::PathBuf;
 
 
 
@@ -89,8 +82,8 @@ fn _main() -> Result<(), SvgError> {
 		.with_list();
 
 	// Make sure the output path is defined before we do any hard work.
-	let out: Option<PathBuf> = args.option2(b"-o", b"--output")
-		.map(|x| PathBuf::from(OsStr::from_bytes(x)))
+	let out: Option<PathBuf> = args.option2_os(b"-o", b"--output")
+		.map(PathBuf::from)
 		.filter(|p| ! p.is_dir());
 
 	// The ID prefix.
@@ -114,9 +107,9 @@ fn _main() -> Result<(), SvgError> {
 		class,
 		hide,
 		prefix,
-		Dowser::filtered(|p: &Path| Extension::try_from3(p).map_or(false, |e| e == E_SVG))
-			.with_paths(args.args().iter().map(|x| OsStr::from_bytes(x)))
-			.into_vec()
+		Dowser::default()
+			.with_paths(args.args_os())
+			.into_vec(|p| Some(E_SVG) == Extension::try_from3(p))
 	)?;
 
 	// Save it to a file.

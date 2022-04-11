@@ -48,7 +48,10 @@ use img::{
 	HideType,
 	Map,
 };
-use std::path::PathBuf;
+use std::{
+	ffi::OsStr,
+	path::PathBuf,
+};
 
 
 
@@ -87,8 +90,8 @@ fn _main() -> Result<(), SvgError> {
 		.filter(|p| ! p.is_dir());
 
 	// The ID prefix.
-	let prefix: &str = args.option2(b"-p", b"--prefix")
-		.and_then(|x| std::str::from_utf8(x).ok())
+	let prefix: &str = args.option2_os(b"-p", b"--prefix")
+		.and_then(OsStr::to_str)
 		.unwrap_or("i");
 
 	// Hiding strategy.
@@ -98,8 +101,8 @@ fn _main() -> Result<(), SvgError> {
 		else { HideType::None };
 
 	// ID and class.
-	let id = args.option(b"--map-id").and_then(|x| std::str::from_utf8(x).ok());
-	let class = args.option(b"--map-class").and_then(|x| std::str::from_utf8(x).ok());
+	let id = args.option_os(b"--map-id").and_then(OsStr::to_str);
+	let class = args.option_os(b"--map-class").and_then(OsStr::to_str);
 
 	// Find the files!
 	let map = Map::new(

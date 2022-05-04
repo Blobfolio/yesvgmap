@@ -2,6 +2,7 @@
 
 [![Build Status](https://github.com/Blobfolio/yesvgmap/workflows/Build/badge.svg)](https://github.com/Blobfolio/yesvgmap/actions)
 [![Dependency Status](https://deps.rs/repo/github/blobfolio/yesvgmap/status.svg)](https://deps.rs/repo/github/blobfolio/yesvgmap)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/Blobfolio/yesvgmap)
 
 
 

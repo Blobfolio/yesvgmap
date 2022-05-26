@@ -1,7 +1,7 @@
 # Project Dependencies
     Package:   yesvgmap
-    Version:   0.3.5
-    Generated: 2022-05-19 19:51:30 UTC
+    Version:   0.3.6
+    Generated: 2022-05-26 16:26:40 UTC
 
 | Package | Version | Author(s) | License |
 | ---- | ---- | ---- | ---- |

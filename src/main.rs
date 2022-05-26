@@ -108,6 +108,7 @@ fn _main() -> Result<(), SvgError> {
 
 	// Find the files!
 	let map = Map::new(
+		out.is_none(), // Don't print warnings if we're using STDOUT.
 		id,
 		class,
 		hide,

@@ -77,11 +77,12 @@ impl fmt::Display for Map {
 impl Map {
 	/// # New.
 	pub(super) fn new(
+		quiet: bool,
 		id: Option<&str>,
 		class: Option<&str>,
 		hide: HideType,
 		prefix: &str,
-		paths: Vec<PathBuf>
+		paths: Vec<PathBuf>,
 	) -> Result<Self, SvgError> {
 		// There have to be paths.
 		if paths.is_empty() {
@@ -131,7 +132,7 @@ impl Map {
 			nice_paths.push((stem, s));
 
 			// Note if this has styles or other issues.
-			if warn {
+			if warn && ! quiet {
 				warned.push(path.file_name().unwrap().to_string_lossy().into_owned());
 			}
 		}

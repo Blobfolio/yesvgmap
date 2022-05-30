@@ -86,7 +86,7 @@ description = "One or more file and/or directory paths to crunch and/or (resursi
 dowser = "0.5.*"
 
 [dependencies]
-argyle = "0.5.*, >=0.5.3"
+argyle = "0.6.*"
 dowser = "0.5.*"
 fyi_msg = "0.9.*"
 svg = "=0.10.0"

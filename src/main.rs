@@ -4,25 +4,29 @@
 
 #![forbid(unsafe_code)]
 
-#![warn(clippy::filetype_is_file)]
-#![warn(clippy::integer_division)]
-#![warn(clippy::needless_borrow)]
-#![warn(clippy::nursery)]
-#![warn(clippy::pedantic)]
-#![warn(clippy::perf)]
-#![warn(clippy::suboptimal_flops)]
-#![warn(clippy::unneeded_field_pattern)]
-#![warn(macro_use_extern_crate)]
-#![warn(missing_copy_implementations)]
-#![warn(missing_debug_implementations)]
-#![warn(missing_docs)]
-#![warn(non_ascii_idents)]
-#![warn(trivial_casts)]
-#![warn(trivial_numeric_casts)]
-#![warn(unreachable_pub)]
-#![warn(unused_crate_dependencies)]
-#![warn(unused_extern_crates)]
-#![warn(unused_import_braces)]
+#![warn(
+	clippy::filetype_is_file,
+	clippy::integer_division,
+	clippy::needless_borrow,
+	clippy::nursery,
+	clippy::pedantic,
+	clippy::perf,
+	clippy::suboptimal_flops,
+	clippy::unneeded_field_pattern,
+	macro_use_extern_crate,
+	missing_copy_implementations,
+	missing_debug_implementations,
+	missing_docs,
+	non_ascii_idents,
+	trivial_casts,
+	trivial_numeric_casts,
+	unreachable_pub,
+	unused_crate_dependencies,
+	unused_extern_crates,
+	unused_import_braces,
+)]
+
+#![allow(clippy::redundant_pub_crate)]
 
 
 
@@ -48,10 +52,7 @@ use img::{
 	HideType,
 	Map,
 };
-use std::{
-	ffi::OsStr,
-	path::PathBuf,
-};
+use std::path::PathBuf;
 
 
 
@@ -92,8 +93,8 @@ fn _main() -> Result<(), SvgError> {
 		.filter(|p| ! p.is_dir());
 
 	// The ID prefix.
-	let prefix: &str = args.option2_os(b"-p", b"--prefix")
-		.and_then(OsStr::to_str)
+	let prefix: &str = args.option2(b"-p", b"--prefix")
+		.and_then(|x| std::str::from_utf8(x).ok())
 		.unwrap_or("i");
 
 	// Hiding strategy.
@@ -103,8 +104,8 @@ fn _main() -> Result<(), SvgError> {
 		else { HideType::None };
 
 	// ID and class.
-	let id = args.option_os(b"--map-id").and_then(OsStr::to_str);
-	let class = args.option_os(b"--map-class").and_then(OsStr::to_str);
+	let id = args.option(b"--map-id").and_then(|x| std::str::from_utf8(x).ok());
+	let class = args.option(b"--map-class").and_then(|x| std::str::from_utf8(x).ok());
 
 	// Find the files!
 	let map = Map::new(

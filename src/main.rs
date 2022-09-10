@@ -116,7 +116,7 @@ fn _main() -> Result<(), SvgError> {
 		prefix,
 		Dowser::default()
 			.with_paths(args.args_os())
-			.into_vec(|p| Some(E_SVG) == Extension::try_from3(p))
+			.into_vec_filtered(|p| Some(E_SVG) == Extension::try_from3(p))
 	)?;
 
 	// Save it to a file.

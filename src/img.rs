@@ -51,7 +51,7 @@ impl fmt::Display for Map {
 
 		// The hidden attribute shouldn't have a "true" attached to it.
 		if matches!(self.hide, HideType::Hidden) {
-			if let Some(pos) = raw.find(" hidden=\"true\"") {
+			if let Some(pos) = raw.as_bytes().windows(14).position(|b| b == br#" hidden="true""#) {
 				raw.replace_range(pos+7..pos+14, "");
 			}
 		}

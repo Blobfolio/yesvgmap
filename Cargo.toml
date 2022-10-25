@@ -80,7 +80,7 @@ label = "<PREFIX>"
 
 [[package.metadata.bashman.arguments]]
 label = "<PATH(s)…>"
-description = "One or more file and/or directory paths to crunch and/or (resursively) crawl. Only files with the extension .svg will ultimately be included."
+description = "One or more file and/or directory paths to crunch and/or (recursively) crawl. Only files with the extension .svg will ultimately be included."
 
 [build-dependencies]
 dowser = "0.6.*"

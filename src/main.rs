@@ -193,7 +193,7 @@ OPTIONS:
 
 ARGS:
     <PATH(S)>...                One or more file and/or directory paths to
-                                crunch and/or (resursively) crawl. Only files
+                                crunch and/or (recursively) crawl. Only files
                                 with the extension .svg will ultimately be
                                 included.
 "#

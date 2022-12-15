@@ -89,7 +89,7 @@ dowser = "0.6.*"
 argyle = "0.6.*"
 dowser = "0.6.*"
 fyi_msg = "0.10.*"
-svg = "=0.12.1"
+svg = "=0.13.0"
 write_atomic = "0.2.*"
 
 [profile.release]

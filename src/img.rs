@@ -155,7 +155,7 @@ remove those elements from the source(s), then regenerate the map.")
 
 			warned.sort();
 			for w in warned {
-				println!("    \x1b[1;95m•\x1b[0m {}", w);
+				println!("    \x1b[1;95m•\x1b[0m {w}");
 			}
 
 			println!();
@@ -261,7 +261,7 @@ fn parse_as_symbol(path: &Path, stem: &str, prefix: &str)
 	// Grab the main element.
 	events.reverse();
 	let mut out = parse_main(events.pop(), path)?
-		.set("id", format!("{}-{}", prefix, stem));
+		.set("id", format!("{prefix}-{stem}"));
 
 	// Check for styles, classes, and IDs that may cause issues.
 	let warn = has_styles(&events);

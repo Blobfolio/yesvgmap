@@ -41,9 +41,9 @@ impl Error for SvgError {}
 impl fmt::Display for SvgError {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		match self {
-			Self::Parse(p) => write!(f, "Unable to parse: {:?}.", p),
-			Self::Read(p) => write!(f, "Unreadable: {:?}.", p),
-			Self::Viewbox(p) => write!(f, "Missing viewBox: {:?}", p),
+			Self::Parse(p) => write!(f, "Unable to parse: {p:?}."),
+			Self::Read(p) => write!(f, "Unreadable: {p:?}."),
+			Self::Viewbox(p) => write!(f, "Missing viewBox: {p:?}"),
 			_ => f.write_str(self.as_str()),
 		}
 	}

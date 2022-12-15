@@ -131,7 +131,7 @@ fn _main() -> Result<(), SvgError> {
 		)).print();
 	}
 	// Just print it.
-	else { println!("{}", map); }
+	else { println!("{map}"); }
 
 	// Done!
 	Ok(())

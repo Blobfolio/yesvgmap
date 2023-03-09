@@ -90,7 +90,7 @@ argyle = "0.6.*"
 dowser = "0.7.*"
 fyi_msg = "0.10.*"
 svg = "=0.13.0"
-write_atomic = "0.2.*"
+write_atomic = "0.3.*"
 
 [profile.release]
 lto = true

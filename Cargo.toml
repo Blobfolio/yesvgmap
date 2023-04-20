@@ -1,6 +1,6 @@
 [package]
 name = "yesvgmap"
-version = "0.3.13"
+version = "0.3.14"
 license = "WTFPL"
 authors = ["Josh Stoik <josh@blobfolio.com>"]
 edition = "2021"
@@ -89,7 +89,7 @@ dowser = "0.7.*"
 argyle = "0.6.*"
 dowser = "0.7.*"
 fyi_msg = "0.10.*"
-svg = "=0.13.0"
+svg = "=0.13.1"
 write_atomic = "0.3.*"
 
 [profile.release]

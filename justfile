@@ -76,15 +76,6 @@ release_dir := justfile_directory() + "/release"
 		--target-dir "{{ cargo_dir }}"
 
 
-# Check Release!
-@check:
-	# First let's build the Rust bit.
-	cargo check \
-		--release \
-		--target x86_64-unknown-linux-gnu \
-		--target-dir "{{ cargo_dir }}"
-
-
 @clean:
 	# Most things go here.
 	[ ! -d "{{ cargo_dir }}" ] || rm -rf "{{ cargo_dir }}"
@@ -100,7 +91,6 @@ release_dir := justfile_directory() + "/release"
 	clear
 	cargo clippy \
 		--release \
-		--all-features \
 		--target x86_64-unknown-linux-gnu \
 		--target-dir "{{ cargo_dir }}"
 
@@ -140,6 +130,10 @@ release_dir := justfile_directory() + "/release"
 @test:
 	clear
 	cargo test \
+		--target x86_64-unknown-linux-gnu \
+		--target-dir "{{ cargo_dir }}"
+	cargo test \
+		--release \
 		--target x86_64-unknown-linux-gnu \
 		--target-dir "{{ cargo_dir }}"
 

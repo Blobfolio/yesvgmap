@@ -1,10 +1,10 @@
 [package]
 name = "yesvgmap"
-version = "0.4.1"
+version = "0.5.0"
 license = "WTFPL"
 authors = ["Josh Stoik <josh@blobfolio.com>"]
 edition = "2021"
-rust-version = "1.70"
+rust-version = "1.73"
 description = "Generate SVG sprite maps from individual SVG images."
 repository = "https://github.com/Blobfolio/yesvgmap"
 readme = "README.md"
@@ -89,8 +89,8 @@ dowser = "0.8.*"
 argyle = "0.6.*"
 dowser = "0.8.*"
 fyi_msg = "0.11.*"
-svg = "=0.13.1"
-write_atomic = "0.4.*"
+svg = "=0.14.0"
+write_atomic = "0.5.*"
 
 [profile.release]
 lto = true

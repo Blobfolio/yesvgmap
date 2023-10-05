@@ -64,7 +64,7 @@ include!(concat!(env!("OUT_DIR"), "/yesvgmap-extensions.rs"));
 /// # Main.
 fn main() {
 	match _main() {
-		Ok(_) => {},
+		Ok(()) => {},
 		Err(SvgError::Argue(ArgyleError::WantsVersion)) => {
 			println!(concat!("Yesvgmap v", env!("CARGO_PKG_VERSION")));
 		},

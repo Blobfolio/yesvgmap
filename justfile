@@ -24,6 +24,8 @@ cargo_bin   := cargo_dir + "/x86_64-unknown-linux-gnu/release/" + pkg_id
 doc_dir     := justfile_directory() + "/doc"
 release_dir := justfile_directory() + "/release"
 
+export RUSTFLAGS := "-C target-cpu=x86-64-v3"
+
 
 
 # Build Release!
@@ -50,30 +52,6 @@ release_dir := justfile_directory() + "/release"
 
 	just _fix-chown "{{ release_dir }}"
 	mv "{{ justfile_directory() }}/target" "{{ cargo_dir }}"
-
-
-@build-pgo: clean
-	[ ! -d "/tmp/pgo-data" ] || rm -rf /tmp/pgo-data
-
-	RUSTFLAGS="-Cprofile-generate=/tmp/pgo-data" cargo build \
-		--bin "{{ pkg_id }}" \
-		--release \
-		--target x86_64-unknown-linux-gnu \
-		--target-dir "{{ cargo_dir }}"
-
-	"{{ cargo_bin }}" "{{ justfile_directory() }}/test-assets"
-	"{{ cargo_bin }}" --hidden "{{ justfile_directory() }}/test-assets"
-	"{{ cargo_bin }}" --offscreen -o /tmp/foo.svg "{{ justfile_directory() }}/test-assets"
-	rm /tmp/foo.svg
-
-	/usr/local/rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/llvm-profdata \
-		merge -o /tmp/pgo-data/merged.profdata /tmp/pgo-data
-
-	RUSTFLAGS="-Cprofile-use=/tmp/pgo-data/merged.profdata -Cllvm-args=-pgo-warn-missing-function" cargo build \
-		--bin "{{ pkg_id }}" \
-		--release \
-		--target x86_64-unknown-linux-gnu \
-		--target-dir "{{ cargo_dir }}"
 
 
 @clean:

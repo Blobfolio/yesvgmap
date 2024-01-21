@@ -20,9 +20,11 @@ pkg_name    := "Yesvgmap"
 pkg_dir1    := justfile_directory()
 
 cargo_dir   := "/tmp/" + pkg_id + "-cargo"
-cargo_bin   := cargo_dir + "/x86_64-unknown-linux-gnu/release/" + pkg_id
+cargo_bin   := cargo_dir + "/release/" + pkg_id
 doc_dir     := justfile_directory() + "/doc"
 release_dir := justfile_directory() + "/release"
+
+export RUSTFLAGS := "-C target-cpu=x86-64-v3"
 
 
 
@@ -32,7 +34,6 @@ release_dir := justfile_directory() + "/release"
 	cargo build \
 		--bin "{{ pkg_id }}" \
 		--release \
-		--target x86_64-unknown-linux-gnu \
 		--target-dir "{{ cargo_dir }}"
 
 
@@ -52,30 +53,6 @@ release_dir := justfile_directory() + "/release"
 	mv "{{ justfile_directory() }}/target" "{{ cargo_dir }}"
 
 
-@build-pgo: clean
-	[ ! -d "/tmp/pgo-data" ] || rm -rf /tmp/pgo-data
-
-	RUSTFLAGS="-Cprofile-generate=/tmp/pgo-data" cargo build \
-		--bin "{{ pkg_id }}" \
-		--release \
-		--target x86_64-unknown-linux-gnu \
-		--target-dir "{{ cargo_dir }}"
-
-	"{{ cargo_bin }}" "{{ justfile_directory() }}/test-assets"
-	"{{ cargo_bin }}" --hidden "{{ justfile_directory() }}/test-assets"
-	"{{ cargo_bin }}" --offscreen -o /tmp/foo.svg "{{ justfile_directory() }}/test-assets"
-	rm /tmp/foo.svg
-
-	/usr/local/rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/llvm-profdata \
-		merge -o /tmp/pgo-data/merged.profdata /tmp/pgo-data
-
-	RUSTFLAGS="-Cprofile-use=/tmp/pgo-data/merged.profdata -Cllvm-args=-pgo-warn-missing-function" cargo build \
-		--bin "{{ pkg_id }}" \
-		--release \
-		--target x86_64-unknown-linux-gnu \
-		--target-dir "{{ cargo_dir }}"
-
-
 @clean:
 	# Most things go here.
 	[ ! -d "{{ cargo_dir }}" ] || rm -rf "{{ cargo_dir }}"
@@ -91,7 +68,6 @@ release_dir := justfile_directory() + "/release"
 	clear
 	cargo clippy \
 		--release \
-		--target x86_64-unknown-linux-gnu \
 		--target-dir "{{ cargo_dir }}"
 
 
@@ -101,27 +77,11 @@ release_dir := justfile_directory() + "/release"
 	just _fix-chown "{{ justfile_directory() }}/CREDITS.md"
 
 
-# Build Docs.
-@doc:
-	# Make the docs.
-	cargo doc \
-		--release \
-		--no-deps \
-		--target x86_64-unknown-linux-gnu \
-		--target-dir "{{ cargo_dir }}"
-
-	# Move the docs and clean up ownership.
-	[ ! -d "{{ doc_dir }}" ] || rm -rf "{{ doc_dir }}"
-	mv "{{ cargo_dir }}/x86_64-unknown-linux-gnu/doc" "{{ justfile_directory() }}"
-	just _fix-chown "{{ doc_dir }}"
-
-
 # Test Run.
 @run +ARGS:
 	cargo run \
 		--bin "{{ pkg_id }}" \
 		--release \
-		--target x86_64-unknown-linux-gnu \
 		--target-dir "{{ cargo_dir }}" \
 		-- {{ ARGS }}
 
@@ -130,11 +90,9 @@ release_dir := justfile_directory() + "/release"
 @test:
 	clear
 	cargo test \
-		--target x86_64-unknown-linux-gnu \
 		--target-dir "{{ cargo_dir }}"
 	cargo test \
 		--release \
-		--target x86_64-unknown-linux-gnu \
 		--target-dir "{{ cargo_dir }}"
 
 

@@ -179,7 +179,9 @@ FLAGS:
 
 OPTIONS:
     -l, --list <FILE>           Read (absolute) file and/or directory paths
-                                from this text file, one entry per line.
+                                from this text file — or STDIN if "-" — one
+                                entry per line, instead of or addition to
+                                (actually trailing) <PATH(S)>.
         --map-class <CLASS>     Add this class to the generated SVG map.
                                 [default: ]
         --map-id <ID>           Add this ID to the generated SVG map.

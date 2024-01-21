@@ -52,7 +52,7 @@ description = "Print version information and exit."
 short = "-l"
 long = "--list"
 label = "<FILE>"
-description = "Read (absolute) file and/or directory paths from this text file, one entry per line."
+description = "Read (absolute) file and/or directory paths from this text file — or STDIN if '-' — one entry per line, instead of or addition to (actually trailing) <PATH(S)>."
 path = true
 
 [[package.metadata.bashman.options]]
@@ -86,7 +86,7 @@ description = "One or more file and/or directory paths to crunch and/or (recursi
 dowser = "0.8.*"
 
 [dependencies]
-argyle = "0.6.*"
+argyle = "0.7.*"
 dowser = "0.8.*"
 fyi_msg = "0.11.*"
 svg = "=0.14.0"

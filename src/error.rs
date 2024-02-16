@@ -18,7 +18,7 @@ pub(super) enum SvgError {
 	Argue(ArgyleError),
 
 	/// # Duplicate entry.
-	Duplicate,
+	Duplicate(String),
 
 	/// # No SVGs.
 	NoSvgs,
@@ -41,6 +41,7 @@ impl Error for SvgError {}
 impl fmt::Display for SvgError {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		match self {
+			Self::Duplicate(s) => write!(f, "Normalized name collision: {s}."),
 			Self::Parse(p) => write!(f, "Unable to parse: {p:?}."),
 			Self::Read(p) => write!(f, "Unreadable: {p:?}."),
 			Self::Viewbox(p) => write!(f, "Missing viewBox: {p:?}"),
@@ -59,7 +60,6 @@ impl SvgError {
 	pub(super) const fn as_str(&self) -> &'static str {
 		match self {
 			Self::Argue(e) => e.as_str(),
-			Self::Duplicate => "Normalized file names must be unique.",
 			Self::NoSvgs => "No SVGs were found.",
 			Self::Write => "Unable to save the SVG map.",
 			_ => "",

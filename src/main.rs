@@ -42,6 +42,7 @@ use argyle::{
 	FLAG_REQUIRED,
 	FLAG_VERSION,
 };
+use dactyl::traits::NiceInflection;
 use dowser::{
 	Dowser,
 	Extension,
@@ -109,7 +110,6 @@ fn _main() -> Result<(), SvgError> {
 
 	// Find the files!
 	let map = Map::new(
-		out.is_none(), // Don't print warnings if we're using STDOUT.
 		id,
 		class,
 		hide,
@@ -125,13 +125,20 @@ fn _main() -> Result<(), SvgError> {
 			.map_err(|_| SvgError::Write)?;
 
 		Msg::success(format!(
-			"A sprite with {} images has been saved to {:?}",
-			map.len(),
+			"A sprite with {} has been saved to {:?}",
+			map.len().nice_inflect("image", "images"),
 			std::fs::canonicalize(&path).unwrap()
-		)).print();
+		)).eprint();
 	}
 	// Just print it.
-	else { println!("{map}"); }
+	else {
+		Msg::success(format!(
+			"Generated a sprite with {}.",
+			map.len().nice_inflect("image", "images"),
+		)).eprint();
+
+		println!("{map}");
+	}
 
 	// Done!
 	Ok(())

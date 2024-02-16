@@ -1,10 +1,9 @@
 [package]
 name = "yesvgmap"
-version = "0.5.2"
+version = "0.5.3"
 license = "WTFPL"
 authors = ["Josh Stoik <josh@blobfolio.com>"]
 edition = "2021"
-rust-version = "1.73"
 description = "Generate SVG sprite maps from individual SVG images."
 repository = "https://github.com/Blobfolio/yesvgmap"
 readme = "README.md"
@@ -83,13 +82,14 @@ label = "<PATH(s)…>"
 description = "One or more file and/or directory paths to crunch and/or (recursively) crawl. Only files with the extension .svg will ultimately be included."
 
 [build-dependencies]
-dowser = "0.8.*"
+dowser = "0.9.*"
 
 [dependencies]
 argyle = "0.7.*"
-dowser = "0.8.*"
-fyi_msg = "0.12.*"
-svg = "=0.15.0"
+dactyl = "0.7.*"
+dowser = "0.9.*"
+fyi_msg = "0.13.*"
+svg = "=0.15.1"
 write_atomic = "0.5.*"
 
 [profile.release]

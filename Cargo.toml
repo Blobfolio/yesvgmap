@@ -86,6 +86,7 @@ dowser = "0.9.*"
 
 [dependencies]
 argyle = "0.7.*"
+dactyl = "0.7.*"
 dowser = "0.9.*"
 fyi_msg = "0.13.*"
 svg = "=0.15.1"

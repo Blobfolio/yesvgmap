@@ -5,6 +5,7 @@
 use crate::SvgError;
 use fyi_msg::Msg;
 use std::{
+	collections::BTreeMap,
 	fmt,
 	path::{
 		Path,
@@ -77,7 +78,6 @@ impl fmt::Display for Map {
 impl Map {
 	/// # New.
 	pub(super) fn new(
-		quiet: bool,
 		id: Option<&str>,
 		class: Option<&str>,
 		hide: HideType,
@@ -114,7 +114,7 @@ impl Map {
 		// Handle the paths!
 		let mut warned: Vec<String> = Vec::new();
 		let len: usize = paths.len();
-		let mut nice_paths: Vec<(String, Symbol)> = Vec::with_capacity(len);
+		let mut nice_paths: BTreeMap<String, Symbol> = BTreeMap::default();
 		for path in paths {
 			// The symbol ID is built from the alphanumeric (and dash)
 			// characters in the file name.
@@ -129,36 +129,29 @@ impl Map {
 			let (s, warn) = parse_as_symbol(&path, &stem, prefix)?;
 
 			// Push it to temporary storage.
-			nice_paths.push((stem, s));
+			if nice_paths.insert(stem.clone(), s).is_some() {
+				return Err(SvgError::Duplicate(stem));
+			}
 
 			// Note if this has styles or other issues.
-			if warn && ! quiet {
+			if warn {
 				warned.push(path.file_name().unwrap().to_string_lossy().into_owned());
 			}
 		}
 
-		// Sort and dedup by stem.
-		nice_paths.sort_by(|a, b| a.0.cmp(&b.0));
-		nice_paths.dedup_by(|a, b| a.0 == b.0);
-
-		// If the length changed, there are duplicates.
-		if nice_paths.len() != len {
-			return Err(SvgError::Duplicate);
-		}
-
 		// Mention any potential style/class issues.
 		if ! warned.is_empty() {
-			Msg::warning("The following SVG(s) contain scripts, styles, classes, and/or IDs that might
-not work correctly when embedded in a sprite map. If you experience issues,
-remove those elements from the source(s), then regenerate the map.")
-				.print();
+			Msg::warning(format!(
+				"Scripts, styles, classes, and IDs may not work correctly in sprite map
+contexts; the following image{} might need to be refactored:",
+				if len == 1 { "" } else { "s" },
+			))
+				.eprint();
 
 			warned.sort();
 			for w in warned {
-				println!("    \x1b[1;95m•\x1b[0m {w}");
+				eprintln!("    \x1b[1;93m•\x1b[0m {w}");
 			}
-
-			println!();
 		}
 
 		// Done!

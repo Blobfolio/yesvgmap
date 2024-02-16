@@ -87,7 +87,7 @@ dowser = "0.8.*"
 [dependencies]
 argyle = "0.7.*"
 dowser = "0.8.*"
-fyi_msg = "0.12.*"
+fyi_msg = "0.13.*"
 svg = "=0.15.0"
 write_atomic = "0.5.*"
 

@@ -44,7 +44,7 @@ yesvgmap -o map.svg -l list.txt
 | ----- | ---- | ----- | ----------- | ------- |
 | -h | --help | | Print help information and exit. | |
 | | --hidden | | Hide the map using the "hidden" HTML attribute. | |
-| -l | --list | *path* | Read (absolute) file and/or directory paths from this text file, one entry per line. | |
+| -l | --list | *path* | Read (absolute) file and/or directory paths from this text file — or STDIN if "-" — one entry per line, instead of or addition to `<PATH(S)>`. | |
 | | --map-class | *string* | Add this class to the generated SVG map. | |
 | | --map-id | *string* | Add this ID to the generated SVG map. | |
 | | --offscreen | | Hide the map using inline styles to position it offscreen. | |

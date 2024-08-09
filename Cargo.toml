@@ -85,7 +85,7 @@ description = "One or more file and/or directory paths to crunch and/or (recursi
 dowser = "0.9.*"
 
 [dependencies]
-argyle = "0.7.*"
+argyle = "0.8.*"
 dactyl = "0.7.*"
 dowser = "0.9.*"
 fyi_msg = "0.13.*"

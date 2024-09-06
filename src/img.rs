@@ -37,8 +37,13 @@ use svg::{
 ///
 /// This holds an `svg` element with some number of `symbol` children.
 pub(super) struct Map {
+	/// # SVG.
 	inner: SVG,
+
+	/// # Hide Type.
 	hide: HideType,
+
+	/// # Length.
 	len: usize,
 }
 
@@ -135,7 +140,9 @@ impl Map {
 
 			// Note if this has styles or other issues.
 			if warn {
-				warned.push(path.file_name().unwrap().to_string_lossy().into_owned());
+				if let Some(name) = path.file_name() {
+					warned.push(name.to_string_lossy().into_owned());
+				}
 			}
 		}
 
@@ -177,8 +184,13 @@ contexts; the following image{} might need to be refactored:",
 /// SVG maps aren't generally intended for direct display. This enum holds the
 /// different strategies for keeping it that way.
 pub(super) enum HideType {
+	/// # Don't Hide.
 	None,
+
+	/// # Hide with `hidden` Attribute.
 	Hidden,
+
+	/// # Position Offscreen.
 	Offscreen,
 }
 
@@ -405,7 +417,10 @@ fn parse_wh(w1: Option<&Value>, h1: Option<&Value>) -> Option<String> {
 /// If any of the above fail, or an open or close cannot be found, `None` is
 /// returned.
 fn ranges(src: &[u8]) -> Option<(usize, usize)> {
+	/// # Opening Marker.
 	const OPEN: &[u8] = b"<svg ";
+
+	/// # Closing Marker.
 	const CLOSE: &[u8] = b"</svg>";
 
 	let mut opens: u8 = 0;
@@ -448,6 +463,7 @@ mod tests {
 	use super::*;
 
 	#[test]
+	#[expect(clippy::type_complexity, reason = "It is what it is.")]
 	fn test_ranges() {
 		let tests: [(&[u8], Option<(usize, usize)>); 4] = [
 			(include_bytes!("../test-assets/close.svg"), Some((0, 287))),
@@ -532,27 +548,23 @@ mod tests {
 
 	#[test]
 	fn test_styles() {
-		assert_eq!(
+		assert!(
 			has_styles_wrapper(include_str!("../test-assets/arrow-1.svg")),
-			true,
 			"Missed styles for arrow-1.svg."
 		);
 
-		assert_eq!(
+		assert!(
 			has_styles_wrapper(include_str!("../test-assets/arrow-2.svg")),
-			true,
 			"Missed styles for arrow-2.svg."
 		);
 
-		assert_eq!(
+		assert!(
 			has_styles_wrapper(include_str!("../test-assets/arrow-3.svg")),
-			true,
 			"Missed styles for arrow-3.svg."
 		);
 
-		assert_eq!(
-			has_styles_wrapper(include_str!("../test-assets/bitcoin.svg")),
-			false,
+		assert!(
+			!has_styles_wrapper(include_str!("../test-assets/bitcoin.svg")),
 			"False positive styles for bitcoin.svg."
 		);
 	}

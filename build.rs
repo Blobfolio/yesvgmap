@@ -18,7 +18,7 @@ pub fn main() {
 	println!("cargo:rerun-if-env-changed=CARGO_PKG_VERSION");
 
 	let out = format!(
-		r"const E_SVG: Extension = {};",
+		"/// # Extension: SVG.\nconst E_SVG: Extension = {};",
 		Extension::codegen(b"svg"),
 	);
 

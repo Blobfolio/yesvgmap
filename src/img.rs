@@ -201,7 +201,7 @@ fn is_empty(src: &Element) -> bool {
 	src.get_attributes().is_empty() &&
 	src.get_children().is_empty() &&
 	matches!(
-		src.get_name().as_str(),
+		src.get_name(),
 		"a" | "defs" | "glyph" | "g" | "marker" | "mask" | "missing-glyph" |
 		"pattern" | "script" | "style" | "switch"
 	)

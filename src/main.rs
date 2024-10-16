@@ -60,13 +60,7 @@ mod img;
 
 
 
-use argyle::{
-	Argue,
-	ArgyleError,
-	FLAG_HELP,
-	FLAG_REQUIRED,
-	FLAG_VERSION,
-};
+use argyle::Argument;
 use dactyl::traits::NiceInflection;
 use dowser::{
 	Dowser,
@@ -78,7 +72,10 @@ use img::{
 	HideType,
 	Map,
 };
-use std::path::PathBuf;
+use std::{
+	borrow::Cow,
+	path::PathBuf,
+};
 
 
 
@@ -91,15 +88,8 @@ include!(concat!(env!("OUT_DIR"), "/yesvgmap-extensions.rs"));
 fn main() {
 	match _main() {
 		Ok(()) => {},
-		Err(SvgError::Argue(ArgyleError::WantsVersion)) => {
-			println!(concat!("Yesvgmap v", env!("CARGO_PKG_VERSION")));
-		},
-		Err(SvgError::Argue(ArgyleError::WantsHelp)) => {
-			helper();
-		},
-		Err(e) => {
-			Msg::error(e.to_string()).die(1);
-		},
+		Err(e @ (SvgError::PrintHelp | SvgError::PrintVersion)) => { println!("{e}"); },
+		Err(e) => { Msg::error(e.to_string()).die(1); },
 	}
 }
 
@@ -110,38 +100,53 @@ fn main() {
 /// pretty.
 fn _main() -> Result<(), SvgError> {
 	// Parse CLI arguments.
-	let args = Argue::new(FLAG_HELP | FLAG_REQUIRED | FLAG_VERSION)?
-		.with_list();
+	let args = argyle::args()
+		.with_keywords(include!(concat!(env!("OUT_DIR"), "/argyle.rs")));
 
-	// Make sure the output path is defined before we do any hard work.
-	let out: Option<PathBuf> = args.option2_os(b"-o", b"--output")
-		.map(PathBuf::from)
-		.filter(|p| ! p.is_dir());
+	let mut class = None;
+	let mut hide = HideType::None;
+	let mut id = None;
+	let mut out = None;
+	let mut paths = Dowser::default();
+	let mut prefix = Cow::Borrowed("i");
+	for arg in args {
+		match arg {
+			Argument::Key("-h" | "--help") => return Err(SvgError::PrintHelp),
+			Argument::Key("--hidden") => { hide = HideType::Hidden; },
+			Argument::Key("--offscreen") => { hide = HideType::Offscreen; },
+			Argument::Key("-V" | "--version") => return Err(SvgError::PrintVersion),
 
-	// The ID prefix.
-	let prefix: &str = args.option2(b"-p", b"--prefix")
-		.and_then(|x| std::str::from_utf8(x).ok())
-		.unwrap_or("i");
+			Argument::KeyWithValue("-l" | "--list", s) => if let Ok(s) = std::fs::read_to_string(s) {
+				paths = paths.with_paths(s.lines().filter_map(|line| {
+					let line = line.trim();
+					if line.is_empty() { Some(line.to_owned()) }
+					else { None }
+				}));
+			},
+			Argument::KeyWithValue("--map-class", s) => { class.replace(s); },
+			Argument::KeyWithValue("--map-id", s) => { id.replace(s); },
+			Argument::KeyWithValue("-o" | "--output", s) => {
+				let s = PathBuf::from(s);
+				if ! s.is_dir() { out.replace(s); }
+			},
+			Argument::KeyWithValue("-p" | "--prefix", s) => { prefix = Cow::Owned(s); },
 
-	// Hiding strategy.
-	let hide =
-		if args.switch(b"--hidden") { HideType::Hidden }
-		else if args.switch(b"--offscreen") { HideType::Offscreen }
-		else { HideType::None };
+			// Assume these are paths.
+			Argument::Other(s) => { paths = paths.with_path(s); },
+			Argument::InvalidUtf8(s) => { paths = paths.with_path(s); },
 
-	// ID and class.
-	let id = args.option(b"--map-id").and_then(|x| std::str::from_utf8(x).ok());
-	let class = args.option(b"--map-class").and_then(|x| std::str::from_utf8(x).ok());
+			// Nothing else is relevant.
+			_ => {},
+		}
+	}
 
 	// Find the files!
 	let map = Map::new(
-		id,
-		class,
+		id.as_deref(),
+		class.as_deref(),
 		hide,
-		prefix,
-		Dowser::default()
-			.with_paths(args.args_os())
-			.into_vec_filtered(|p| Some(E_SVG) == Extension::try_from3(p))
+		&prefix,
+		paths.into_vec_filtered(|p| Some(E_SVG) == Extension::try_from3(p))
 	)?;
 
 	// Save it to a file.
@@ -167,69 +172,4 @@ fn _main() -> Result<(), SvgError> {
 
 	// Done!
 	Ok(())
-}
-
-#[cold]
-/// # Print Help.
-fn helper() {
-	println!(concat!(
-		r#"
-      .--.   _,
-  .--;    \ /(_
- /    '.   |   '-._    . ' .
-|       \  \    ,-.)  -= * =-
- \ /\_   '. \((` .(    '/. '
-  )\ /     \ )\  _/   _/
- /  \\    .-'   '--. /_\
-|    \\_.' ,        \/||
-\     \_.-';,_) _)'\ \||
- '.       /`\   (   '._/
-   `\   .;  |  . '.
-     ).'  )/|      \
-     `    ` |  \|   |  "#, "\x1b[38;5;199mYesvgmap\x1b[0;38;5;69m v", env!("CARGO_PKG_VERSION"), "\x1b[0m", r#"
-             \  |   |  SVG sprite generator.
-              '.|   |
-                 \  '\__
-                  `-._  '. _
-                     \`;-.` `._
-                      \ \ `'-._\
-                       \ |
-                        \ )
-                         \_\
-
-USAGE:
-    yesvgmap [FLAGS] [OPTIONS] <PATH(S)>
-
-FLAGS:
-    -h, --help                  Print help information and exit.
-        --hidden                Hide the map using the "hidden" HTML attribute.
-                                This takes priority over --offscreen when both
-                                are present.
-        --offscreen             Hide the map using inline styles to position it
-                                offscreen.
-    -V, --version               Print version information and exit.
-
-OPTIONS:
-    -l, --list <FILE>           Read (absolute) file and/or directory paths
-                                from this text file — or STDIN if "-" — one
-                                entry per line, instead of or addition to
-                                (actually trailing) <PATH(S)>.
-        --map-class <CLASS>     Add this class to the generated SVG map.
-                                [default: ]
-        --map-id <ID>           Add this ID to the generated SVG map.
-                                [default: ]
-    -o, --output <PATH>         Save the generated map to this location. If
-                                omitted, the map will print to STDOUT instead.
-    -p, --prefix <STRING>       Set a custom prefix for the IDs of each entry
-                                in the map. (IDs look like PREFIX-STEM, where
-                                STEM is the alphanumeric portion of the source
-                                file name, e.g. "i-close".) [default: i]
-
-ARGS:
-    <PATH(S)>...                One or more file and/or directory paths to
-                                crunch and/or (recursively) crawl. Only files
-                                with the extension .svg will ultimately be
-                                included.
-"#
-	));
 }

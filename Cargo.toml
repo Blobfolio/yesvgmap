@@ -82,10 +82,11 @@ label = "<PATH(s)…>"
 description = "One or more file and/or directory paths to crunch and/or (recursively) crawl. Only files with the extension .svg will ultimately be included."
 
 [build-dependencies]
+argyle = "0.10.*"
 dowser = "0.9.*"
 
 [dependencies]
-argyle = "0.8.*"
+argyle = "0.10.*"
 dactyl = "0.7.*"
 dowser = "0.9.*"
 fyi_msg = "1.1.*"

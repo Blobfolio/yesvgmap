@@ -116,12 +116,9 @@ fn _main() -> Result<(), SvgError> {
 			Argument::Key("--offscreen") => { hide = HideType::Offscreen; },
 			Argument::Key("-V" | "--version") => return Err(SvgError::PrintVersion),
 
-			Argument::KeyWithValue("-l" | "--list", s) => if let Ok(s) = std::fs::read_to_string(s) {
-				paths = paths.with_paths(s.lines().filter_map(|line| {
-					let line = line.trim();
-					if line.is_empty() { Some(line.to_owned()) }
-					else { None }
-				}));
+			Argument::KeyWithValue("-l" | "--list", s) => {
+				paths.read_paths_from_file(&s)
+					.map_err(|_| SvgError::Read(PathBuf::from(s)))?;
 			},
 			Argument::KeyWithValue("--map-class", s) => { class.replace(s); },
 			Argument::KeyWithValue("--map-id", s) => { id.replace(s); },

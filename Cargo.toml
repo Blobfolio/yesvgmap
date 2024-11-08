@@ -88,7 +88,7 @@ dowser = "0.10.*"
 argyle = "0.10.*"
 dactyl = "0.7.*"
 dowser = "0.10.*"
-fyi_msg = "1.1.*"
+fyi_msg = "1.2.*"
 svg = "=0.18.0"
 write_atomic = "0.5.*"
 

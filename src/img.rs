@@ -57,7 +57,7 @@ impl fmt::Display for Map {
 
 		// The hidden attribute shouldn't have a "true" attached to it.
 		if matches!(self.hide, HideType::Hidden) {
-			if let Some(pos) = raw.as_bytes().windows(14).position(|b| b == br#" hidden="true""#) {
+			if let Some(pos) = raw.find(r#" hidden="true""#) {
 				raw.replace_range(pos+7..pos+14, "");
 			}
 		}
@@ -461,6 +461,15 @@ fn ranges(src: &[u8]) -> Option<(usize, usize)> {
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	#[test]
+	fn test_hiddentrue() {
+		let mut raw = r#"<div hidden="true"></div>"#.to_owned();
+		if let Some(pos) = raw.find(r#" hidden="true""#) {
+			raw.replace_range(pos+7..pos+14, "");
+		}
+		assert_eq!(raw, "<div hidden></div>");
+	}
 
 	#[test]
 	#[expect(clippy::type_complexity, reason = "It is what it is.")]

@@ -86,7 +86,7 @@ include!(concat!(env!("OUT_DIR"), "/yesvgmap-extensions.rs"));
 
 /// # Main.
 fn main() {
-	match _main() {
+	match main__() {
 		Ok(()) => {},
 		Err(e @ (SvgError::PrintHelp | SvgError::PrintVersion)) => { println!("{e}"); },
 		Err(e) => { Msg::error(e.to_string()).die(1); },
@@ -98,7 +98,7 @@ fn main() {
 ///
 /// Do our work here so we can easily bubble up errors and handle them nice and
 /// pretty.
-fn _main() -> Result<(), SvgError> {
+fn main__() -> Result<(), SvgError> {
 	// Parse CLI arguments.
 	let args = argyle::args()
 		.with_keywords(include!(concat!(env!("OUT_DIR"), "/argyle.rs")));

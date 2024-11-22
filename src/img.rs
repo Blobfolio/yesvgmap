@@ -138,6 +138,7 @@ impl Map {
 			// Note if this has styles or other issues.
 			if warn {
 				if let Some(name) = path.file_name() {
+					// TODO: keep name as-is; use .display for printing once stable.
 					warned.push(name.to_string_lossy());
 				}
 			}

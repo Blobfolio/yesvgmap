@@ -403,16 +403,18 @@ fn parse_stem_id(path: &Path) -> Option<Cow<'_, str>> {
 ///
 /// This attempts to build a `viewBox` value from a `width` and `height`,
 /// returning `None` if either is missing or non-positive.
-fn parse_wh(w1: Option<&Value>, h1: Option<&Value>) -> Option<String> {
-	let w1 = w1?.to_string();
-	let h1 = h1?.to_string();
-
-	let w2 = w1.trim_matches(|c: char| ! matches!(c, '0'..='9' | '.' | '-'));
-	let h2 = h1.trim_matches(|c: char| ! matches!(c, '0'..='9' | '.' | '-'));
+fn parse_wh(w: Option<&Value>, h: Option<&Value>) -> Option<String> {
+	let w: &str = w?.trim_matches(|c: char| ! matches!(c, '0'..='9' | '.' | '-'));
+	let h: &str = h?.trim_matches(|c: char| ! matches!(c, '0'..='9' | '.' | '-'));
 
 	// If they're both positive, we're good.
-	if 0.0 < w2.parse::<f32>().ok()? && 0.0 < h2.parse::<f32>().ok()? {
-		Some(["0 0 ", w2, " ", h2].concat())
+	if 0.0 < w.parse::<f32>().ok()? && 0.0 < h.parse::<f32>().ok()? {
+		let mut out = String::with_capacity(5 + w.len() + h.len());
+		out.push_str("0 0 ");
+		out.push_str(w);
+		out.push(' ');
+		out.push_str(h);
+		Some(out)
 	}
 	else { None }
 }

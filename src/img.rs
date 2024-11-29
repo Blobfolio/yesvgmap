@@ -5,6 +5,7 @@
 use crate::SvgError;
 use fyi_msg::Msg;
 use std::{
+	borrow::Cow,
 	collections::BTreeMap,
 	fmt,
 	path::{
@@ -57,7 +58,7 @@ impl fmt::Display for Map {
 
 		// The hidden attribute shouldn't have a "true" attached to it.
 		if matches!(self.hide, HideType::Hidden) {
-			if let Some(pos) = raw.as_bytes().windows(14).position(|b| b == br#" hidden="true""#) {
+			if let Some(pos) = raw.find(r#" hidden="true""#) {
 				raw.replace_range(pos+7..pos+14, "");
 			}
 		}
@@ -87,7 +88,7 @@ impl Map {
 		class: Option<&str>,
 		hide: HideType,
 		prefix: &str,
-		paths: Vec<PathBuf>,
+		paths: &[PathBuf],
 	) -> Result<Self, SvgError> {
 		// There have to be paths.
 		if paths.is_empty() {
@@ -117,31 +118,28 @@ impl Map {
 		}
 
 		// Handle the paths!
-		let mut warned: Vec<String> = Vec::new();
+		let mut warned: Vec<Cow<str>> = Vec::new();
 		let len: usize = paths.len();
-		let mut nice_paths: BTreeMap<String, Symbol> = BTreeMap::default();
+		let mut nice_paths: BTreeMap<Cow<str>, Symbol> = BTreeMap::default();
 		for path in paths {
 			// The symbol ID is built from the alphanumeric (and dash)
 			// characters in the file name.
-			let stem: String = path.file_stem()
-				.ok_or_else(|| SvgError::Read(path.clone()))?
-				.to_string_lossy()
-				.chars()
-				.filter(|x| x.is_ascii_alphanumeric() || '-'.eq(x))
-				.collect();
+			let stem = parse_stem_id(path)
+				.ok_or_else(|| SvgError::FileName(path.clone()))?;
 
 			// Build up the symbol.
-			let (s, warn) = parse_as_symbol(&path, &stem, prefix)?;
+			let (s, warn) = parse_as_symbol(path, &stem, prefix)?;
 
 			// Push it to temporary storage.
 			if nice_paths.insert(stem.clone(), s).is_some() {
-				return Err(SvgError::Duplicate(stem));
+				return Err(SvgError::Duplicate(stem.into_owned()));
 			}
 
 			// Note if this has styles or other issues.
 			if warn {
 				if let Some(name) = path.file_name() {
-					warned.push(name.to_string_lossy().into_owned());
+					// TODO: keep name as-is; use .display for printing once stable.
+					warned.push(name.to_string_lossy());
 				}
 			}
 		}
@@ -155,7 +153,7 @@ contexts; the following image{} might need to be refactored:",
 			))
 				.eprint();
 
-			warned.sort();
+			warned.sort_unstable();
 			for w in warned {
 				eprintln!("    \x1b[1;93m•\x1b[0m {w}");
 			}
@@ -384,20 +382,39 @@ fn parse_main(event: Option<Event>, path: &Path) -> Result<Symbol, SvgError> {
 	Err(SvgError::Parse(path.to_path_buf()))
 }
 
+/// # Path Stem to ID.
+///
+/// Take the ASCII alphanumeric and `-` characters from the file stem and
+/// return them for use as an ID suffix.
+fn parse_stem_id(path: &Path) -> Option<Cow<'_, str>> {
+	let mut out = path.file_stem()?.to_string_lossy();
+
+	// Reduce to alphanumeric and -.
+	if out.chars().any(|c| c != '-' && ! c.is_ascii_alphanumeric()) {
+		out.to_mut().retain(|c: char| c == '-' || c.is_ascii_alphanumeric());
+	}
+
+	// Return it if we got it.
+	if out.is_empty() { None }
+	else { Some(out) }
+}
+
 /// # Parse Width/Height.
 ///
 /// This attempts to build a `viewBox` value from a `width` and `height`,
 /// returning `None` if either is missing or non-positive.
-fn parse_wh(w1: Option<&Value>, h1: Option<&Value>) -> Option<String> {
-	let w1 = w1?.to_string();
-	let h1 = h1?.to_string();
-
-	let w2 = w1.trim_matches(|c: char| ! matches!(c, '0'..='9' | '.' | '-'));
-	let h2 = h1.trim_matches(|c: char| ! matches!(c, '0'..='9' | '.' | '-'));
+fn parse_wh(w: Option<&Value>, h: Option<&Value>) -> Option<String> {
+	let w: &str = w?.trim_matches(|c: char| ! matches!(c, '0'..='9' | '.' | '-'));
+	let h: &str = h?.trim_matches(|c: char| ! matches!(c, '0'..='9' | '.' | '-'));
 
 	// If they're both positive, we're good.
-	if 0.0 < w2.parse::<f32>().ok()? && 0.0 < h2.parse::<f32>().ok()? {
-		Some(["0 0 ", w2, " ", h2].concat())
+	if 0.0 < w.parse::<f32>().ok()? && 0.0 < h.parse::<f32>().ok()? {
+		let mut out = String::with_capacity(5 + w.len() + h.len());
+		out.push_str("0 0 ");
+		out.push_str(w);
+		out.push(' ');
+		out.push_str(h);
+		Some(out)
 	}
 	else { None }
 }
@@ -461,6 +478,43 @@ fn ranges(src: &[u8]) -> Option<(usize, usize)> {
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	#[test]
+	fn test_hiddentrue() {
+		let mut raw = r#"<div hidden="true"></div>"#.to_owned();
+		if let Some(pos) = raw.find(r#" hidden="true""#) {
+			raw.replace_range(pos+7..pos+14, "");
+		}
+		assert_eq!(raw, "<div hidden></div>");
+	}
+
+	#[test]
+	fn test_parse_stem_id() {
+		for (raw, expected, borrowed) in [
+			("image.svg", Some("image"), true),
+			("image name.svg", Some("imagename"), false),
+			("ImAgE.svg", Some("ImAgE"), true),
+			("__.svg", None, true),
+		] {
+			if let Some(expected) = expected {
+				let Some(raw2) = parse_stem_id(raw.as_ref()) else {
+					panic!("BUG: unable to parse stem/id from {raw:?}");
+				};
+				assert_eq!(raw2.as_ref(), expected);
+				assert_eq!(
+					matches!(raw2, Cow::Borrowed(_)),
+					borrowed,
+					"BUG: expected {raw:?} borrow to be {borrowed}",
+				);
+			}
+			else {
+				assert!(
+					parse_stem_id(raw.as_ref()).is_none(),
+					"BUG: shouldn't have parsed stem/id from {raw:?}",
+				);
+			}
+		}
+	}
 
 	#[test]
 	#[expect(clippy::type_complexity, reason = "It is what it is.")]

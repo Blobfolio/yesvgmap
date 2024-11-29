@@ -1,6 +1,6 @@
-.TH "YESVGMAP" "1" "October 2024" "yesvgmap v0.5.7" "User Commands"
+.TH "YESVGMAP" "1" "November 2024" "yesvgmap v0.5.8" "User Commands"
 .SH NAME
-YESVGMAP \- Manual page for yesvgmap v0.5.7.
+YESVGMAP \- Manual page for yesvgmap v0.5.8.
 .SH DESCRIPTION
 Generate SVG sprite maps from individual SVG images.
 .SS USAGE:
@@ -35,6 +35,7 @@ Save the generated map to this location. If omitted, the map will print to STDOU
 .TP
 \fB\-p\fR, \fB\-\-prefix\fR <PREFIX>
 Set a custom prefix for the IDs of each entry in the map. (IDs look like PREFIX\-STEM, where STEM is the alphanumeric portion of the source file name, e.g. 'i\-close'.) [default: i]
-.SS <PATH(S)…>:
+.SS TRAILING:
 .TP
+\fB<PATH(s)…>\fR
 One or more file and/or directory paths to crunch and/or (recursively) crawl. Only files with the extension .svg will ultimately be included.

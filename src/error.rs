@@ -78,6 +78,9 @@ pub(super) enum SvgError {
 	/// # Duplicate entry.
 	Duplicate(String),
 
+	/// # File Name (Stem).
+	FileName(PathBuf),
+
 	/// # No SVGs.
 	NoSvgs,
 
@@ -106,6 +109,7 @@ impl fmt::Display for SvgError {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		match self {
 			Self::Duplicate(s) => write!(f, "Normalized name collision: {s}."),
+			Self::FileName(p) => write!(f, "File name has no ASCII alphanumeric or '-': {p:?}"),
 			Self::Parse(p) => write!(f, "Unable to parse: {p:?}."),
 			Self::Read(p) => write!(f, "Unreadable: {p:?}."),
 			Self::Viewbox(p) => write!(f, "Missing viewBox: {p:?}"),

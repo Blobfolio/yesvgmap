@@ -86,7 +86,7 @@ include!(concat!(env!("OUT_DIR"), "/yesvgmap-extensions.rs"));
 
 /// # Main.
 fn main() {
-	match _main() {
+	match main__() {
 		Ok(()) => {},
 		Err(e @ (SvgError::PrintHelp | SvgError::PrintVersion)) => { println!("{e}"); },
 		Err(e) => { Msg::error(e.to_string()).die(1); },
@@ -98,7 +98,7 @@ fn main() {
 ///
 /// Do our work here so we can easily bubble up errors and handle them nice and
 /// pretty.
-fn _main() -> Result<(), SvgError> {
+fn main__() -> Result<(), SvgError> {
 	// Parse CLI arguments.
 	let args = argyle::args()
 		.with_keywords(include!(concat!(env!("OUT_DIR"), "/argyle.rs")));
@@ -116,12 +116,9 @@ fn _main() -> Result<(), SvgError> {
 			Argument::Key("--offscreen") => { hide = HideType::Offscreen; },
 			Argument::Key("-V" | "--version") => return Err(SvgError::PrintVersion),
 
-			Argument::KeyWithValue("-l" | "--list", s) => if let Ok(s) = std::fs::read_to_string(s) {
-				paths = paths.with_paths(s.lines().filter_map(|line| {
-					let line = line.trim();
-					if line.is_empty() { Some(line.to_owned()) }
-					else { None }
-				}));
+			Argument::KeyWithValue("-l" | "--list", s) => {
+				paths.read_paths_from_file(&s)
+					.map_err(|_| SvgError::Read(PathBuf::from(s)))?;
 			},
 			Argument::KeyWithValue("--map-class", s) => { class.replace(s); },
 			Argument::KeyWithValue("--map-id", s) => { id.replace(s); },
@@ -146,7 +143,7 @@ fn _main() -> Result<(), SvgError> {
 		class.as_deref(),
 		hide,
 		&prefix,
-		paths.into_vec_filtered(|p| Some(E_SVG) == Extension::try_from3(p))
+		&paths.into_vec_filtered(|p| Some(E_SVG) == Extension::try_from3(p))
 	)?;
 
 	// Save it to a file.

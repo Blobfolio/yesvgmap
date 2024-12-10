@@ -82,12 +82,12 @@ description = "One or more file and/or directory paths to crunch and/or (recursi
 
 [build-dependencies]
 argyle = "0.10.*"
-dowser = "0.10.*"
+dowser = "0.11.*"
 
 [dependencies]
 argyle = "0.10.*"
 dactyl = "0.9.*"
-dowser = "0.10.*"
+dowser = "0.11.*"
 fyi_msg = "1.4.*"
 svg = "=0.18.0"
 write_atomic = "0.5.*"

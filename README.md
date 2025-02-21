@@ -58,22 +58,14 @@ yesvgmap -o map.svg -l list.txt
 
 Debian and Ubuntu users can just grab the pre-built `.deb` package from the [latest release](https://github.com/Blobfolio/yesvgmap/releases/latest).
 
-This application is written in [Rust](https://www.rust-lang.org/) and can alternatively be built from source using [Cargo](https://github.com/rust-lang/cargo):
+This application is written in [Rust](https://www.rust-lang.org/) and can alternatively be built/installed from source using [Cargo](https://github.com/rust-lang/cargo):
 
 ```bash
-# Clone the source.
-git clone https://github.com/Blobfolio/yesvgmap.git
-
-# Go to it.
-cd yesvgmap
-
-# Build as usual. Specify additional flags as desired.
-cargo build \
-    --bin yesvgmap \
-    --release
+# See "cargo install --help" for more options.
+cargo install \
+    --git https://github.com/Blobfolio/yesvgmap.git \
+    --bin yesvgmap
 ```
-
-(This should work under other 64-bit Unix environments too, like MacOS.)
 
 
 

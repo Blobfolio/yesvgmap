@@ -75,6 +75,7 @@ use img::{
 use std::{
 	borrow::Cow,
 	path::PathBuf,
+	process::ExitCode,
 };
 
 
@@ -85,11 +86,17 @@ include!(concat!(env!("OUT_DIR"), "/yesvgmap-extensions.rs"));
 
 
 /// # Main.
-fn main() {
+fn main() -> ExitCode {
 	match main__() {
-		Ok(()) => {},
-		Err(e @ (SvgError::PrintHelp | SvgError::PrintVersion)) => { println!("{e}"); },
-		Err(e) => { Msg::error(e.to_string()).die(1); },
+		Ok(()) => ExitCode::SUCCESS,
+		Err(e @ (SvgError::PrintHelp | SvgError::PrintVersion)) => {
+			println!("{e}");
+			ExitCode::SUCCESS
+		},
+		Err(e) => {
+			Msg::error(e.to_string()).eprint();
+			ExitCode::SUCCESS
+		},
 	}
 }
 

@@ -135,9 +135,11 @@ fn main__() -> Result<(), SvgError> {
 			},
 			Argument::KeyWithValue("-p" | "--prefix", s) => { prefix = Cow::Owned(s); },
 
-			// Assume these are paths.
-			Argument::Other(s) => { paths = paths.with_path(s); },
-			Argument::InvalidUtf8(s) => { paths = paths.with_path(s); },
+			Argument::Path(s) => { paths = paths.with_path(s); },
+
+			// Mistake?
+			Argument::Other(s) => return Err(SvgError::InvalidCli(s)),
+			Argument::InvalidUtf8(s) => return Err(SvgError::InvalidCli(s.to_string_lossy().into_owned())),
 
 			// Nothing else is relevant.
 			_ => {},

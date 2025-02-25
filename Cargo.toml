@@ -87,7 +87,7 @@ dowser = "0.11.*"
 [dependencies]
 dactyl = "0.9.*"
 dowser = "0.11.*"
-fyi_msg = "1.6.*"
+fyi_msg = "1.7.*"
 svg = "=0.18.0"
 write_atomic = "0.5.*"
 

@@ -339,11 +339,10 @@ fn parse_flat2(mut name: String, attrs: Attributes, events: &mut Vec<Event>) -> 
 				if ! is_empty(&tmp) { out.append(tmp); }
 			},
 			// Recurse.
-			Event::Tag(s, Type::Start, attrs) => {
+			Event::Tag(s, Type::Start, attrs) =>
 				if let Some(tmp) = parse_flat2(s.to_ascii_lowercase(), attrs, events) {
 					if ! is_empty(&tmp) { out.append(tmp); }
-				}
-			},
+				},
 			_ => {},
 		}
 	}

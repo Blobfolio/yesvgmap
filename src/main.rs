@@ -152,7 +152,7 @@ fn main__() -> Result<(), SvgError> {
 		class.as_deref(),
 		hide,
 		&prefix,
-		&paths.into_vec_filtered(|p| Some(E_SVG) == Extension::try_from3(p))
+		&paths.filter(|p| Some(E_SVG) == Extension::try_from3(p)).collect::<Vec<_>>()
 	)?;
 
 	// Save it to a file.

@@ -81,6 +81,9 @@ pub(super) enum SvgError {
 	/// # File Name (Stem).
 	FileName(PathBuf),
 
+	/// # Invalid CLI Arg.
+	InvalidCli(String),
+
 	/// # No SVGs.
 	NoSvgs,
 
@@ -110,6 +113,7 @@ impl fmt::Display for SvgError {
 		match self {
 			Self::Duplicate(s) => write!(f, "Normalized name collision: {s}."),
 			Self::FileName(p) => write!(f, "File name has no ASCII alphanumeric or '-': {p:?}"),
+			Self::InvalidCli(s) => write!(f, "Invalid/unknown arg: \x1b[2m{s}\x1b[0m"),
 			Self::Parse(p) => write!(f, "Unable to parse: {p:?}."),
 			Self::Read(p) => write!(f, "Unreadable: {p:?}."),
 			Self::Viewbox(p) => write!(f, "Missing viewBox: {p:?}"),

@@ -75,6 +75,7 @@ use img::{
 use std::{
 	borrow::Cow,
 	path::PathBuf,
+	process::ExitCode,
 };
 
 
@@ -85,11 +86,17 @@ include!(concat!(env!("OUT_DIR"), "/yesvgmap-extensions.rs"));
 
 
 /// # Main.
-fn main() {
+fn main() -> ExitCode {
 	match main__() {
-		Ok(()) => {},
-		Err(e @ (SvgError::PrintHelp | SvgError::PrintVersion)) => { println!("{e}"); },
-		Err(e) => { Msg::error(e.to_string()).die(1); },
+		Ok(()) => ExitCode::SUCCESS,
+		Err(e @ (SvgError::PrintHelp | SvgError::PrintVersion)) => {
+			println!("{e}");
+			ExitCode::SUCCESS
+		},
+		Err(e) => {
+			Msg::error(e.to_string()).eprint();
+			ExitCode::SUCCESS
+		},
 	}
 }
 
@@ -128,9 +135,11 @@ fn main__() -> Result<(), SvgError> {
 			},
 			Argument::KeyWithValue("-p" | "--prefix", s) => { prefix = Cow::Owned(s); },
 
-			// Assume these are paths.
-			Argument::Other(s) => { paths = paths.with_path(s); },
-			Argument::InvalidUtf8(s) => { paths = paths.with_path(s); },
+			Argument::Path(s) => { paths = paths.with_path(s); },
+
+			// Mistake?
+			Argument::Other(s) => return Err(SvgError::InvalidCli(s)),
+			Argument::InvalidUtf8(s) => return Err(SvgError::InvalidCli(s.to_string_lossy().into_owned())),
 
 			// Nothing else is relevant.
 			_ => {},
@@ -143,7 +152,7 @@ fn main__() -> Result<(), SvgError> {
 		class.as_deref(),
 		hide,
 		&prefix,
-		&paths.into_vec_filtered(|p| Some(E_SVG) == Extension::try_from3(p))
+		&paths.filter(|p| Some(E_SVG) == Extension::try_from3(p)).collect::<Vec<_>>()
 	)?;
 
 	// Save it to a file.

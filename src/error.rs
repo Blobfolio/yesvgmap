@@ -2,6 +2,11 @@
 # Yesvgmap: Errors
 */
 
+use fyi_ansi::{
+	ansi,
+	csi,
+	dim,
+};
 use std::{
 	error::Error,
 	fmt,
@@ -24,7 +29,7 @@ const HELP: &str = concat!(r#"
  '.       /`\   (   '._/
    `\   .;  |  . '.
      ).'  )/|      \
-     `    ` |  \|   |  "#, "\x1b[38;5;199mYesvgmap\x1b[0;38;5;69m v", env!("CARGO_PKG_VERSION"), "\x1b[0m", r#"
+     `    ` |  \|   |  "#, csi!(199), "Yesvgmap", ansi!((cornflower_blue) " v", env!("CARGO_PKG_VERSION")), r#"
              \  |   |  SVG sprite generator.
               '.|   |
                  \  '\__
@@ -113,7 +118,11 @@ impl fmt::Display for SvgError {
 		match self {
 			Self::Duplicate(s) => write!(f, "Normalized name collision: {s}."),
 			Self::FileName(p) => write!(f, "File name has no ASCII alphanumeric or '-': {p:?}"),
-			Self::InvalidCli(s) => write!(f, "Invalid/unknown arg: \x1b[2m{s}\x1b[0m"),
+			Self::InvalidCli(s) => write!(
+				f,
+				concat!("Invalid/unknown arg: ", dim!("{}")),
+				s,
+			),
 			Self::Parse(p) => write!(f, "Unable to parse: {p:?}."),
 			Self::Read(p) => write!(f, "Unreadable: {p:?}."),
 			Self::Viewbox(p) => write!(f, "Missing viewBox: {p:?}"),

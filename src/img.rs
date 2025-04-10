@@ -3,6 +3,7 @@
 */
 
 use crate::SvgError;
+use fyi_ansi::ansi;
 use fyi_msg::Msg;
 use std::{
 	borrow::Cow,
@@ -155,7 +156,7 @@ contexts; the following image{} might need to be refactored:",
 
 			warned.sort_unstable();
 			for w in warned {
-				eprintln!("    \x1b[1;93m•\x1b[0m {w}");
+				eprintln!(concat!(ansi!((bold, light_yellow) "    •"), " {}"), w);
 			}
 		}
 

@@ -3,7 +3,7 @@
 */
 
 use crate::SvgError;
-use fyi_ansi::ansi;
+use fyi_ansi::dim;
 use fyi_msg::Msg;
 use std::{
 	borrow::Cow,
@@ -31,6 +31,50 @@ use svg::{
 		Parser,
 	},
 };
+
+
+
+include!(concat!(env!("OUT_DIR"), "/content-warnings.rs"));
+
+impl fmt::Display for ContentWarnings {
+	/// # To String.
+	///
+	/// This emits SVG code, slightly compressed.
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		if self.is_none() { return Ok(()); }
+
+		// Pre-collect the warnings to compact the formatting.
+		let mut what = Vec::with_capacity(3);
+
+		match (self.contains(Self::ScriptTag), self.contains(Self::StyleTag)) {
+			(true, true) => { what.push("<script>/<style> tags"); },
+			(true, false) => { what.push("<script> tags"); },
+			(false, true) => { what.push("<style> tags"); },
+			(false, false) => {},
+		}
+
+		match (self.contains(Self::ClassAttr), self.contains(Self::IdAttr)) {
+			(true, true) => { what.push("class/id attributes"); },
+			(true, false) => { what.push("classes"); },
+			(false, true) => { what.push("IDs"); },
+			(false, false) => {},
+		}
+
+		match (self.contains(Self::InlineScript), self.contains(Self::InlineStyle)) {
+			(true, true) => { what.push("inline scripts/styles"); },
+			(true, false) => { what.push("inline scripts"); },
+			(false, true) => { what.push("inline styles"); },
+			(false, false) => {},
+		}
+
+		match what.as_slice() {
+			[a, b, c] => write!(f, "{a}, {b}, and {c}"),
+			[a, b] => write!(f, "{a} and {b}"),
+			[c] => f.write_str(c),
+			_ => Ok(()),
+		}
+	}
+}
 
 
 
@@ -119,7 +163,6 @@ impl Map {
 		}
 
 		// Handle the paths!
-		let mut warned: Vec<Cow<str>> = Vec::new();
 		let len: usize = paths.len();
 		let mut nice_paths: BTreeMap<Cow<str>, Symbol> = BTreeMap::default();
 		for path in paths {
@@ -137,26 +180,14 @@ impl Map {
 			}
 
 			// Note if this has styles or other issues.
-			if warn {
+			if ! warn.is_none() {
 				if let Some(name) = path.file_name() {
-					// TODO: keep name as-is; use .display for printing once stable.
-					warned.push(name.to_string_lossy());
+					Msg::warning(format!(
+						concat!(dim!("{file}"), " contains {contents}."),
+						file=name.to_string_lossy(),
+						contents=warn,
+					)).eprint();
 				}
-			}
-		}
-
-		// Mention any potential style/class issues.
-		if ! warned.is_empty() {
-			Msg::warning(format!(
-				"Scripts, styles, classes, and IDs may not work correctly in sprite map
-contexts; the following image{} might need to be refactored:",
-				if len == 1 { "" } else { "s" },
-			))
-				.eprint();
-
-			warned.sort_unstable();
-			for w in warned {
-				eprintln!(concat!(ansi!((bold, light_yellow) "    •"), " {}"), w);
 			}
 		}
 
@@ -211,26 +242,35 @@ fn is_empty(src: &Element) -> bool {
 /// Styles, classes, and IDs inside of SVGs have a habit of colliding with one
 /// another, particularly in map contexts. This method looks to see if there
 /// are any so we can issue a warning.
-fn has_styles(src: &[Event]) -> bool {
-	src.iter()
-		.filter_map(|e|
-			if let Event::Tag(name, _, attrs) = e { Some((name, attrs)) }
-			else { None }
-		)
-		.any(|(name, attrs)|
-			match name.len() {
-				5 => name.eq_ignore_ascii_case("style"),
-				6 => name.eq_ignore_ascii_case("script"),
-				_ => false,
-			} ||
-			attrs.keys().any(|k|
-				match k.len() {
-					2 => k.eq_ignore_ascii_case("id"),
-					5 => k.eq_ignore_ascii_case("class") || k.eq_ignore_ascii_case("style"),
-					_ => k.starts_with("on"),
+fn has_styles(src: &[Event]) -> ContentWarnings {
+	let mut warnings = ContentWarnings::None;
+	for e in src {
+		if let Event::Tag(name, _, attrs) = e {
+			if name.eq_ignore_ascii_case("style") {
+				warnings.set(ContentWarnings::StyleTag);
+			}
+			else if name.eq_ignore_ascii_case("script") {
+				warnings.set(ContentWarnings::ScriptTag);
+			}
+			else {
+				for k in attrs.keys() {
+					if k.eq_ignore_ascii_case("id") {
+						warnings.set(ContentWarnings::IdAttr);
+					}
+					else if k.eq_ignore_ascii_case("class") {
+						warnings.set(ContentWarnings::ClassAttr);
+					}
+					else if k.eq_ignore_ascii_case("style") {
+						warnings.set(ContentWarnings::InlineStyle);
+					}
+					else if k.starts_with("on") {
+						warnings.set(ContentWarnings::InlineScript);
+					}
 				}
-			)
-		)
+			}
+		}
+	}
+	warnings
 }
 
 /// # Parse SVG into Symbol.
@@ -238,7 +278,7 @@ fn has_styles(src: &[Event]) -> bool {
 /// This parses and somewhat validates an input SVG, returning it as a `Symbol`
 /// suitable for inclusion in the map.
 fn parse_as_symbol(path: &Path, stem: &str, prefix: &str)
--> Result<(Symbol, bool), SvgError> {
+-> Result<(Symbol, ContentWarnings), SvgError> {
 	// Load the SVG. We'll do this as bytes for now.
 	let raw: String = std::fs::read_to_string(path)
 		.map_err(|_| SvgError::Read(path.to_path_buf()))?;
@@ -571,7 +611,7 @@ mod tests {
 		}
 	}
 
-	fn has_styles_wrapper(raw: &str) -> bool {
+	fn has_styles_wrapper(raw: &str) -> ContentWarnings {
 		// Find the start and end ranges.
 		let (start, end) = ranges(raw.as_bytes())
 			.expect("Failed to parse SVG.");
@@ -602,23 +642,27 @@ mod tests {
 
 	#[test]
 	fn test_styles() {
-		assert!(
+		assert_eq!(
 			has_styles_wrapper(include_str!("../test-assets/arrow-1.svg")),
+			ContentWarnings::StyleTag | ContentWarnings::ClassAttr,
 			"Missed styles for arrow-1.svg."
 		);
 
-		assert!(
+		assert_eq!(
 			has_styles_wrapper(include_str!("../test-assets/arrow-2.svg")),
+			ContentWarnings::ClassAttr,
 			"Missed styles for arrow-2.svg."
 		);
 
-		assert!(
+		assert_eq!(
 			has_styles_wrapper(include_str!("../test-assets/arrow-3.svg")),
+			ContentWarnings::IdAttr,
 			"Missed styles for arrow-3.svg."
 		);
 
-		assert!(
-			!has_styles_wrapper(include_str!("../test-assets/bitcoin.svg")),
+		assert_eq!(
+			has_styles_wrapper(include_str!("../test-assets/bitcoin.svg")),
+			ContentWarnings::None,
 			"False positive styles for bitcoin.svg."
 		);
 	}

@@ -2,7 +2,10 @@
 # Yesvgmap: Build
 */
 
-use argyle::KeyWordsBuilder;
+use argyle::{
+	FlagsBuilder,
+	KeyWordsBuilder,
+};
 use dowser::Extension;
 use std::{
 	fs::File,
@@ -22,6 +25,7 @@ pub fn main() {
 	println!("cargo:rerun-if-env-changed=CARGO_PKG_VERSION");
 
 	build_cli();
+	build_flags();
 
 	// Extensions are easy for this one!.
 	let out = format!(
@@ -48,6 +52,18 @@ fn build_cli() {
 		"-p", "--prefix",
 	]);
 	builder.save(out_path("argyle.rs"));
+}
+
+/// # Build Flags.
+fn build_flags() {
+	FlagsBuilder::new("ContentWarnings")
+		.with_flag("ScriptTag", None)
+		.with_flag("StyleTag", None)
+		.with_flag("ClassAttr", None)
+		.with_flag("IdAttr", None)
+		.with_flag("InlineScript", None)
+		.with_flag("InlineStyle", None)
+		.save(out_path("content-warnings.rs"));
 }
 
 /// # Output Path.

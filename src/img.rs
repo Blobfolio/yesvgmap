@@ -34,6 +34,54 @@ use svg::{
 
 
 
+/// # Presentation Attributes.
+const PRESENTATION: [&str; 42] = [
+	"alignment-baseline",
+	"baseline-shift",
+	"clip",
+	"clip-path",
+	"clip-rule",
+	"color-interpolation",
+	"color-interpolation-filters",
+	"color-profile",
+	"color-rendering",
+	"dominant-baseline",
+	"enable-background",
+	"fill",
+	"fill-opacity",
+	"fill-rule",
+	"filter",
+	"flood-color",
+	"flood-opacity",
+	"glyph-orientation-horizontal",
+	"glyph-orientation-vertical",
+	"image-rendering",
+	"kerning",
+	"lighting-color",
+	"marker",
+	"marker-end",
+	"marker-mid",
+	"marker-start",
+	"mask",
+	"opacity",
+	"pointer-events",
+	"shape-rendering",
+	"stop-color",
+	"stop-opacity",
+	"stroke",
+	"stroke-dasharray",
+	"stroke-dashoffset",
+	"stroke-linecap",
+	"stroke-linejoin",
+	"stroke-miterlimit",
+	"stroke-opacity",
+	"stroke-width",
+	"text-anchor",
+	"text-rendering",
+];
+
+
+
 include!(concat!(env!("OUT_DIR"), "/content-warnings.rs"));
 
 impl fmt::Display for ContentWarnings {
@@ -237,12 +285,36 @@ fn is_empty(src: &Element) -> bool {
 	)
 }
 
+/// # Content Warnings (Symbol).
+///
+/// Parse a (manually-built) symbol, returning the content warnings, if any.
+fn content_warnings_symbol(src: &Symbol) -> ContentWarnings {
+	let raw = src.to_string();
+
+	// Parse it (again).
+	let mut events: Vec<Event> = Vec::new();
+	for event in Parser::new(&raw) {
+		match event {
+			Event::Tag(_, _, _) | Event::Text(_) => { events.push(event); },
+			_ => {},
+		}
+	}
+
+	// The last event should be a closing SVG tag.
+	if let Some(Event::Tag("symbol", Type::End, _)) = events.pop() {
+		events.reverse();
+		events.pop();
+		content_warnings(&events)
+	}
+	else { ContentWarnings::None }
+}
+
 /// # Check for Styles, Classes, IDs.
 ///
 /// Styles, classes, and IDs inside of SVGs have a habit of colliding with one
 /// another, particularly in map contexts. This method looks to see if there
 /// are any so we can issue a warning.
-fn has_styles(src: &[Event]) -> ContentWarnings {
+fn content_warnings(src: &[Event]) -> ContentWarnings {
 	let mut warnings = ContentWarnings::None;
 	for e in src {
 		if let Event::Tag(name, _, attrs) = e {
@@ -291,7 +363,12 @@ fn parse_as_symbol(path: &Path, stem: &str, prefix: &str)
 	for event in Parser::new(&raw[start..end]) {
 		match event {
 			Event::Error(_) => return Err(SvgError::Parse(path.to_path_buf())),
-			Event::Tag(_, _, _) | Event::Text(_) => { events.push(event); },
+			Event::Tag(s, t, mut a) => {
+				// Move presentational styles to attributes before saving.
+				inline_styles_to_attributes(&mut a);
+				events.push(Event::Tag(s, t, a));
+			},
+			Event::Text(_) => { events.push(event); },
 			_ => {},
 		}
 	}
@@ -307,9 +384,6 @@ fn parse_as_symbol(path: &Path, stem: &str, prefix: &str)
 	let mut out = parse_main(events.pop(), path)?
 		.set("id", format!("{prefix}-{stem}"));
 
-	// Check for styles, classes, and IDs that may cause issues.
-	let warn = has_styles(&events);
-
 	// Append the children.
 	while ! events.is_empty() {
 		let next = parse_flat(&mut events)
@@ -318,6 +392,9 @@ fn parse_as_symbol(path: &Path, stem: &str, prefix: &str)
 			out.append(next);
 		}
 	}
+
+	// Check for styles, classes, and IDs that may cause issues.
+	let warn = content_warnings_symbol(&out);
 
 	Ok((out, warn))
 }
@@ -513,6 +590,31 @@ fn ranges(src: &[u8]) -> Option<(usize, usize)> {
 	else { None }
 }
 
+/// # Inline Styles to Attributes.
+fn inline_styles_to_attributes(attr: &mut Attributes) {
+	let Some(style) = attr.get("style") else { return; };
+	let mut style: Vec<String> = style.split(';').map(str::to_owned).collect();
+	let mut changed = false;
+	style.retain(|line| {
+		if line.trim().is_empty() { return false; }
+		let Some((k, v)) = line.split_once(':') else { return true; };
+		if PRESENTATION.binary_search(&k).is_ok() {
+			let v = v.trim_start().trim_end_matches(|c: char| c.is_whitespace() || c == ';');
+			attr.insert(k.to_owned(), v.into());
+			changed = true;
+			false
+		}
+		else { true }
+	});
+
+	if style.is_empty() { attr.remove("style"); }
+	else if changed {
+		if let Some(old) = attr.get_mut("style") {
+			*old = style.join(";").into();
+		}
+	}
+}
+
 
 
 #[cfg(test)]
@@ -611,7 +713,7 @@ mod tests {
 		}
 	}
 
-	fn has_styles_wrapper(raw: &str) -> ContentWarnings {
+	fn content_warnings_wrapper(raw: &str) -> ContentWarnings {
 		// Find the start and end ranges.
 		let (start, end) = ranges(raw.as_bytes())
 			.expect("Failed to parse SVG.");
@@ -637,31 +739,31 @@ mod tests {
 		events.pop();
 
 		// Actually check the styles!
-		has_styles(&events)
+		content_warnings(&events)
 	}
 
 	#[test]
 	fn test_styles() {
 		assert_eq!(
-			has_styles_wrapper(include_str!("../test-assets/arrow-1.svg")),
+			content_warnings_wrapper(include_str!("../test-assets/arrow-1.svg")),
 			ContentWarnings::StyleTag | ContentWarnings::ClassAttr,
 			"Missed styles for arrow-1.svg."
 		);
 
 		assert_eq!(
-			has_styles_wrapper(include_str!("../test-assets/arrow-2.svg")),
+			content_warnings_wrapper(include_str!("../test-assets/arrow-2.svg")),
 			ContentWarnings::ClassAttr,
 			"Missed styles for arrow-2.svg."
 		);
 
 		assert_eq!(
-			has_styles_wrapper(include_str!("../test-assets/arrow-3.svg")),
+			content_warnings_wrapper(include_str!("../test-assets/arrow-3.svg")),
 			ContentWarnings::IdAttr,
 			"Missed styles for arrow-3.svg."
 		);
 
 		assert_eq!(
-			has_styles_wrapper(include_str!("../test-assets/bitcoin.svg")),
+			content_warnings_wrapper(include_str!("../test-assets/bitcoin.svg")),
 			ContentWarnings::None,
 			"False positive styles for bitcoin.svg."
 		);

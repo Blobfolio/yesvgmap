@@ -56,21 +56,32 @@
 
 
 mod error;
-mod img;
+mod parse;
+mod sprite;
 
 
 
 use argyle::Argument;
 use dactyl::traits::NiceInflection;
-use dowser::{
-	Dowser,
-	Extension,
+use dowser::Extension;
+use error::{
+	ContentWarnings,
+	SvgError,
+	SvgErrorKind,
 };
-pub(crate) use error::SvgError;
+use fyi_ansi::{
+	bold,
+	csi,
+	dim,
+};
 use fyi_msg::Msg;
-use img::{
-	HideType,
-	Map,
+use parse::{
+	normalize_attr_case,
+	SvgParser,
+};
+use sprite::{
+	SpriteOptions,
+	Sprite,
 };
 use std::{
 	borrow::Cow,
@@ -89,13 +100,16 @@ include!(concat!(env!("OUT_DIR"), "/yesvgmap-extensions.rs"));
 fn main() -> ExitCode {
 	match main__() {
 		Ok(()) => ExitCode::SUCCESS,
-		Err(e @ (SvgError::PrintHelp | SvgError::PrintVersion)) => {
-			println!("{e}");
-			ExitCode::SUCCESS
-		},
 		Err(e) => {
-			Msg::error(e.to_string()).eprint();
-			ExitCode::SUCCESS
+			let kind = e.kind();
+			if matches!(kind, SvgErrorKind::PrintHelp | SvgErrorKind::PrintVersion) {
+				println!("{e}");
+				ExitCode::SUCCESS
+			}
+			else {
+				Msg::from(e).eprint();
+				ExitCode::FAILURE
+			}
 		},
 	}
 }
@@ -110,72 +124,155 @@ fn main__() -> Result<(), SvgError> {
 	let args = argyle::args()
 		.with_keywords(include!(concat!(env!("OUT_DIR"), "/argyle.rs")));
 
-	let mut class = None;
-	let mut hide = HideType::None;
-	let mut id = None;
-	let mut out = None;
-	let mut paths = Dowser::default();
-	let mut prefix = Cow::Borrowed("i");
+	let mut settings = SpriteOptions::default();
+	let mut dst = None;
 	for arg in args {
 		match arg {
-			Argument::Key("-h" | "--help") => return Err(SvgError::PrintHelp),
-			Argument::Key("--hidden") => { hide = HideType::Hidden; },
-			Argument::Key("--offscreen") => { hide = HideType::Offscreen; },
-			Argument::Key("-V" | "--version") => return Err(SvgError::PrintVersion),
+			Argument::Key("-h" | "--help") => return Err(SvgErrorKind::PrintHelp.into()),
+			Argument::Key("-V" | "--version") => return Err(SvgErrorKind::PrintVersion.into()),
 
+			Argument::KeyWithValue("-a" | "--attribute", s) =>
+				// Key and value, maybe.
+				if let Some((a, b)) = s.split_once('=') {
+					settings.set_attribute(a, Some(b))?;
+				}
+				// Or just key.
+				else {
+					settings.set_attribute(s.trim(), None)?;
+				},
 			Argument::KeyWithValue("-l" | "--list", s) => {
-				paths.read_paths_from_file(&s)
-					.map_err(|_| SvgError::Read(PathBuf::from(s)))?;
+				settings.set_path(PathBuf::from(s), true);
 			},
-			Argument::KeyWithValue("--map-class", s) => { class.replace(s); },
-			Argument::KeyWithValue("--map-id", s) => { id.replace(s); },
 			Argument::KeyWithValue("-o" | "--output", s) => {
 				let s = PathBuf::from(s);
-				if ! s.is_dir() { out.replace(s); }
+				if s.is_dir() || ! crate::valid_extension(&s) {
+					return Err((SvgErrorKind::InvalidDst, s).into());
+				}
+				dst.replace(s);
 			},
-			Argument::KeyWithValue("-p" | "--prefix", s) => { prefix = Cow::Owned(s); },
+			Argument::KeyWithValue("-p" | "--prefix", s) => { settings.set_prefix(s)?; },
 
-			Argument::Path(s) => { paths = paths.with_path(s); },
+			Argument::Path(s) => { settings.set_path(PathBuf::from(s), false); },
 
-			// Mistake?
-			Argument::Other(s) => return Err(SvgError::InvalidCli(s)),
-			Argument::InvalidUtf8(s) => return Err(SvgError::InvalidCli(s.to_string_lossy().into_owned())),
+			// Invalid/deprecated argument.
+			Argument::Other(s) => return Err(match s.as_str() {
+				"--hidden" => SvgErrorKind::DeprecatedHidden.into(),
+				"--offscreen" => SvgErrorKind::DeprecatedOffscreen.into(),
+				"--map-class" => SvgErrorKind::DeprecatedMapClass.into(),
+				"--map-id" => SvgErrorKind::DeprecatedMapId.into(),
+				_ => (SvgErrorKind::InvalidCli, s).into(),
+			}),
+			Argument::InvalidUtf8(s) => return Err((SvgErrorKind::InvalidCli, s).into()),
 
 			// Nothing else is relevant.
 			_ => {},
 		}
 	}
 
-	// Find the files!
-	let map = Map::new(
-		id.as_deref(),
-		class.as_deref(),
-		hide,
-		&prefix,
-		&paths.filter(|p| Some(E_SVG) == Extension::try_from3(p)).collect::<Vec<_>>()
-	)?;
+	// Make a sprite!
+	let out = Sprite::try_from(settings)?;
+
+	// Collect symbols and warnings.
+	let symbols = out.symbols();
+	let warnings = out.warnings();
+
+	// Print the warnings, if any.
+	for (path, warning) in warnings {
+		Msg::warning(format!(
+			concat!(dim!("{file}"), " contains {warning}."),
+			file=path.file_name().unwrap_or(path.as_os_str()).to_string_lossy(),
+			warning=warning,
+		)).eprint();
+	}
+
+	// Let's check for duplicate IDs before we call it good. (The warnings
+	// should help point them to a file.)
+	out.check_ids()?;
+
+	// Optimistically start the success message.
+	let mut summary = format!(
+		concat!("{verb} a sprite map containing ", bold!("{len}")),
+		verb=if dst.is_some() { "Saved" } else { "Generated" },
+		len=symbols.len().nice_inflect("image", "images"),
+	);
 
 	// Save it to a file.
-	if let Some(path) = out {
-		write_atomic::write_file(&path, map.to_string().as_bytes())
-			.map_err(|_| SvgError::Write)?;
+	if let Some(path) = dst.as_deref() {
+		write_atomic::write_file(path, out.to_string().as_bytes())
+			.map_err(|_| (SvgErrorKind::Write, path))?;
 
-		Msg::success(format!(
-			"A sprite with {} has been saved to {:?}",
-			map.len().nice_inflect("image", "images"),
-			std::fs::canonicalize(&path).unwrap()
-		)).eprint();
+		// Append the output path details to the summary.
+		let nice = std::fs::canonicalize(path).map_or(Cow::Borrowed(path), Cow::Owned);
+		if let Some(name) = nice.file_name() {
+			summary.push_str(concat!(" to ", csi!(dim)));
+			summary.push_str(&name.to_string_lossy());
+			summary.push_str(csi!());
+		}
 	}
-	// Just print it.
-	else {
-		Msg::success(format!(
-			"Generated a sprite with {}.",
-			map.len().nice_inflect("image", "images"),
-		)).eprint();
 
-		println!("{map}");
-	}
+	// Give the summary a period and print it along with the symbols.
+	summary.push('.');
+	Msg::success(summary).eprint();
+	eprint!("{symbols}");
+
+	// If we didn't save the output to a file earlier, print it to STDOUT now.
+	if dst.is_none() { println!("{out}"); }
 
 	// Done!
 	Ok(())
+}
+
+/// # Is Valid Attribute?
+///
+/// Returns `true` if it is ASCII, begins with a letter, ends with an
+/// alphanumeric, and contains only letters, numbers, colons, and/or dashes in
+/// between.
+const fn valid_attr(attr: &str) -> bool {
+	let mut attr = attr.as_bytes();
+	if let [b'a'..=b'z' | b'A'..=b'Z', rest @ ..] = attr {
+		attr = rest;
+		while let [next, rest @ ..] = attr {
+			if
+				! matches!(next, b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b':' | b'-') ||
+				(rest.is_empty() && ! next.is_ascii_alphanumeric())
+			{
+				return false;
+			}
+
+			attr = rest;
+		}
+
+		true
+	}
+	else { false }
+}
+
+/// # Has SVG File Extension?
+///
+/// Returns `true` if the path ends with a `.svg` extension.
+fn valid_extension(src: &PathBuf) -> bool {
+	Some(E_SVG) == Extension::try_from3(src)
+}
+
+/// # Is Valid HTML ID?
+///
+/// We're a little more strict than standard, requiring values begin with an
+/// ASCII letter and contain only ASCII alphanumerics, dashes, and/or
+/// underscores thereafter.
+///
+/// Returns `true` if happy.
+const fn valid_id(id: &str) -> bool {
+	let mut id = id.as_bytes();
+	if let [b'a'..=b'z' | b'A'..=b'Z', rest @ ..] = id {
+		id = rest;
+		while let [next, rest @ ..] = id {
+			if ! matches!(next, b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'_' | b'-') {
+				return false;
+			}
+			id = rest;
+		}
+
+		true
+	}
+	else { false }
 }

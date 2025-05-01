@@ -34,14 +34,6 @@ long = "--help"
 description = "Print help information and exit."
 
 [[package.metadata.bashman.switches]]
-long = "--hidden"
-description = "Hide the map using the 'hidden' HTML attribute. This takes priority over --offscreen when both are present."
-
-[[package.metadata.bashman.switches]]
-long = "--offscreen"
-description = "Hide the map using inline styles to position it offscreen."
-
-[[package.metadata.bashman.switches]]
 short = "-V"
 long = "--version"
 description = "Print version information and exit."
@@ -49,25 +41,21 @@ description = "Print version information and exit."
 [[package.metadata.bashman.options]]
 short = "-l"
 long = "--list"
-label = "<FILE>"
-description = "Read (absolute) file and/or directory paths from this text file — or STDIN if '-' — one entry per line, instead of or addition to (actually trailing) <PATH(S)>."
+label = "<PATH>"
+description = "Read (absolute) file and/or directory paths from this text file — or STDIN if '-' — one entry per line, instead of or in addition to any trailing <PATH(S)>."
 path = true
 
 [[package.metadata.bashman.options]]
-long = "--map-class"
-description = "Add this class to the generated SVG map. [default: ]"
-label = "<CLASS>"
-
-[[package.metadata.bashman.options]]
-long = "--map-id"
-description = "Add this ID to the generated SVG map. [default: ]"
-label = "<ID>"
+short = "-a"
+long = "--attribute"
+description = "Add an attribute — id, class, etc. — to the top-level <svg> element."
+label = "<KEY[=VAL]>"
 
 [[package.metadata.bashman.options]]
 short = "-o"
 long = "--output"
 description = "Save the generated map to this location. If omitted, the map will print to STDOUT instead."
-label = "<FILE>"
+label = "<PATH>"
 path = true
 
 [[package.metadata.bashman.options]]
@@ -81,20 +69,23 @@ label = "<PATH(s)…>"
 description = "One or more file and/or directory paths to crunch and/or (recursively) crawl. Only files with the extension .svg will ultimately be included."
 
 [build-dependencies]
-argyle = "0.12.*"
-dowser = "0.12.*"
+argyle = "=0.12.*"
+dowser = "=0.12.*"
 
 [dependencies]
-dactyl = "0.10.*"
-dowser = "0.12.*"
-fyi_ansi = "2.0.*"
-fyi_msg = "2.0.*"
+dactyl = "=0.10.*"
+dowser = "=0.12.*"
+fyi_ansi = "=2.0.*"
 svg = "=0.18.0"
-write_atomic = "0.6.*"
+write_atomic = "=0.6.*"
 
 [dependencies.argyle]
-version = "0.12.*"
+version = "=0.12.*"
 features = [ "try_paths" ]
+
+[dependencies.fyi_msg]
+version = "=2.0.*"
+features = [ "fitted" ]
 
 [profile.release]
 lto = true

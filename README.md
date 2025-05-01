@@ -11,20 +11,17 @@ Yesvgmap is a fast, lightweight CLI app for x86-64 Linux machines that compiles 
 
 
 
-## Features and Non-Features
+## Features
 
-Yesvgmap will:
-
-* Normalize the XML output;
+* Validate/normalize the XML formatting;
 * Strip comments, instructions, and declarations from the sources;
-* Reconstruct missing `viewBox` attributes using `width`/`height` (if present);
-* Help suppress browser display using the `hidden` attribute or inline positioning styles;
+* Strip (some) empty tags;
+* Correct (known) tag/attribute casing;
+* Convert (many) inline styles to attributes (e.g. `style="fill:red"` to `fill="red"`);
+* Validate/normalize the `viewBox`;
+* Warn if any sources contain (potentially) problematic styles and identifiers;
 
-If you find an icon isn't working correctly after being jammed into a map, take a look at its source code to make sure it has a `viewBox` beginning `0 0` and ending with two positive decimals, e.g. `0 0 123 456`. If it doesn't, you'll need to edit the original image to give it a canvas size matching the content, and/or recenter the layers to avoid janky offsets.
-
-Yesvgmap will _not_ heavily compress the output. The normalization and comment-stripping passes help, but for real shrinkage, you should run your source images through something like [svgo](https://github.com/svg/svgo) first.
-
-Yesvgmap does employ a lot of general sanity checks, but is not a spec-complete SVG validator. If your sources are weird/broken, the map might have some weirdness too.
+Stripping and normalization aside, yesvgmap is not a full-blown image optimizer. It is still a good idea to pre-process any SVG sources with a tool like [svgo](https://jakearchibald.github.io/svgomg/) before tossing them into a map.
 
 
 
@@ -42,15 +39,33 @@ yesvgmap -o map.svg -l list.txt
 
 | Short | Long | Value | Description | Default |
 | ----- | ---- | ----- | ----------- | ------- |
+| -a | --attribute | *key\[=val\]* | Add an attribute — id, class, etc. — to the top-level &lt;svg&gt; element. | |
 | -h | --help | | Print help information and exit. | |
-| | --hidden | | Hide the map using the "hidden" HTML attribute. | |
-| -l | --list | *path* | Read (absolute) file and/or directory paths from this text file — or STDIN if "-" — one entry per line, instead of or addition to `<PATH(S)>`. | |
-| | --map-class | *string* | Add this class to the generated SVG map. | |
-| | --map-id | *string* | Add this ID to the generated SVG map. | |
-| | --offscreen | | Hide the map using inline styles to position it offscreen. | |
+| -l | --list | *path* | Read (absolute) file and/or directory paths from this text file — or STDIN if "-" — one entry per line, instead of or in addition to `<PATH(S)>`. | |
 | -o | --output | *path* | Save the generated map to this location. If omitted, the map will print to STDOUT instead. | |
 | -p | --prefix | *string* | Set a custom prefix for the IDs of each entry in the map. (IDs look like `PREFIX-STEM`, where "STEM" is the alphanumeric portion of the source file name.) | `"i"` |
 | -V | --version | | Print version information and exit. | |
+
+
+
+## HTML Usage
+
+Copy and paste the generated map markup directly into the top of the document `<body>`, then insert the following snippet wherever you want an icon displayed:
+
+```html
+<svg><use xlink:href="#i-plus"></use></svg>
+<!--                  ^ The icon ID. -->
+```
+
+Pithy as that minimal snippet is, in practice you'll often need to dress it up a bit for styling purposes:
+
+```html
+<div class="icon" title="Add One">
+	<svg class="icon-plus"><use xlink:href="#i-plus"></use></svg>
+</div>
+```
+
+But that's between you and your designer. ;)
 
 
 
@@ -66,36 +81,3 @@ cargo install \
     --git https://github.com/Blobfolio/yesvgmap.git \
     --bin yesvgmap
 ```
-
-
-
-## FAQ
-
-### What Are SVG Sprite Maps?
-
-An SVG sprite map is a non-displayable SVG comprising one or more displayable SVGs, each accessible via a unique ID.
-
-Rather than inlining a full SVG like…
-
-```html
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512.001 512.001"><path fill="currentColor" d="M512.001 84.853L427.148 0 256.001 171.147 84.853 0 0 84.853 171.148 256 0 427.148l84.853 84.853 171.148-171.147 171.147 171.147 84.853-84.853L340.853 256z"/></svg>
-```
-
-…each time you need a simple `X` icon to appear in your document, you can inline the SVG map _once_, and then link to the (single) `X` icon over and over again like…
-
-```html
-<svg><use xlink:href="#i-close"></use></svg>
-```
-
-Depending on the amount of repetition and the size of the images, SVG sprite maps can substantially reduce the size of the HTML payload, and improve/speed up GZIP/Brotli compression.
-
-But that said, be careful not to go overboard. Sprite maps should only include images that are actually referenced on the page. If you build a map with thousands of unused icons, that's only creating more bloat for yourself. ;)
-
-
-
-### When Not to Use a Sprite Map?
-
-Generally speaking, directly inlining an SVG makes more sense than using a sprite map if:
-* The image only appears once;
-* You need to be able to manipulate its `<path>`s at runtime for e.g. animation;
-* It has no `viewBox` or requires canvas overflow for proper display;

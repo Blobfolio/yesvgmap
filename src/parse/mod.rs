@@ -565,7 +565,7 @@ fn parse_viewport(attr: &Attributes) -> Result<(f32, f32), SvgErrorKind> {
 /// # Trim Style (Callback).
 ///
 /// Get rid of whitespace and semi-colons.
-fn trim_style(c: char) -> bool { c.is_whitespace() || c == ';' }
+const fn trim_style(c: char) -> bool { c.is_whitespace() || c == ';' }
 
 
 

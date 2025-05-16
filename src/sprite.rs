@@ -313,7 +313,7 @@ impl SpriteSymbols {
 	/// # Length.
 	///
 	/// Note this should never be zero.
-	pub(crate) fn len(&self) -> usize { self.0.len() }
+	pub(crate) const fn len(&self) -> usize { self.0.len() }
 }
 
 impl fmt::Display for SpriteSymbols {

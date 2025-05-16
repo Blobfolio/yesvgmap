@@ -44,9 +44,7 @@ pub(crate) struct SpriteOptions {
 	attributes: BTreeMap<String, String>,
 
 	/// # Paths.
-	///
-	/// TODO: store as `Dowser` directly once `Dowser::add_path` is stable.
-	paths: Vec<(PathBuf, bool)>,
+	paths: Dowser,
 
 	/// # SVG Prefix.
 	prefix: String,
@@ -57,7 +55,7 @@ impl Default for SpriteOptions {
 	fn default() -> Self {
 		Self {
 			attributes: BTreeMap::new(),
-			paths: Vec::with_capacity(1),
+			paths: Dowser::default(),
 			prefix: String::from("i"),
 		}
 	}
@@ -118,8 +116,16 @@ impl SpriteOptions {
 	///
 	/// Note that no particular validation is performed here. It'll either
 	/// yield SVGs later on or it won't.
-	pub(crate) fn set_path(&mut self, path: PathBuf, list: bool) {
-		self.paths.push((path, list));
+	pub(crate) fn set_path(&mut self, path: PathBuf, list: bool)
+	-> Result<(), SvgError> {
+		if list {
+			self.paths.read_paths_from_file(&path)
+				.map_err(|_| (SvgErrorKind::Read, path).into())
+		}
+		else {
+			self.paths.push_path(path);
+			Ok(())
+		}
 	}
 
 	/// # Set Prefix.
@@ -142,30 +148,6 @@ impl SpriteOptions {
 		else {
 			Err((SvgErrorKind::InvalidPrefix, prefix).into())
 		}
-	}
-
-	/// # SVG Crawler.
-	///
-	/// Build and return a new crawler from the gathered paths.
-	///
-	/// ## Errors
-	///
-	/// This will return an error if there are no paths to crawl, or a list
-	/// path is invalid.
-	fn crawler(&mut self) -> Result<Dowser, SvgError> {
-		if self.paths.is_empty() {
-			return Err(SvgErrorKind::NoSvgs.into());
-		}
-
-		let mut out = Dowser::default();
-		for (path, list) in self.paths.drain(..) {
-			if list {
-				out.read_paths_from_file(&path)
-					.map_err(|_| (SvgErrorKind::Read, path))?;
-			}
-			else { out = out.with_path(path); }
-		}
-		Ok(out)
 	}
 }
 
@@ -197,10 +179,10 @@ impl fmt::Display for Sprite {
 impl TryFrom<SpriteOptions> for Sprite {
 	type Error = SvgError;
 
-	fn try_from(mut opts: SpriteOptions) -> Result<Self, Self::Error> {
+	fn try_from(opts: SpriteOptions) -> Result<Self, Self::Error> {
 		// Break apart the settings.
-		let paths = opts.crawler()?.filter(crate::valid_extension);
-		let SpriteOptions { attributes, prefix, .. } = opts;
+		let SpriteOptions { attributes, paths, prefix } = opts;
+		let paths = paths.filter(crate::valid_extension);
 
 		// Initialize an (outer) `<svg>` wrapper to hold all the icon
 		// `<symbol>`s we'll be creating.
@@ -219,6 +201,9 @@ impl TryFrom<SpriteOptions> for Sprite {
 				Entry::Occupied(_) => return Err((SvgErrorKind::DupeFileName, p).into()),
 			}
 		}
+
+		// Nothing?
+		if src.is_empty() { return Err(SvgErrorKind::NoSvgs.into()); }
 
 		// Parse each file!
 		let mut symbols = Vec::new();

@@ -141,7 +141,7 @@ fn main__() -> Result<(), SvgError> {
 					settings.set_attribute(s.trim(), None)?;
 				},
 			Argument::KeyWithValue("-l" | "--list", s) => {
-				settings.set_path(PathBuf::from(s), true);
+				settings.set_path(PathBuf::from(s), true)?;
 			},
 			Argument::KeyWithValue("-o" | "--output", s) => {
 				let s = PathBuf::from(s);
@@ -152,7 +152,7 @@ fn main__() -> Result<(), SvgError> {
 			},
 			Argument::KeyWithValue("-p" | "--prefix", s) => { settings.set_prefix(s)?; },
 
-			Argument::Path(s) => { settings.set_path(PathBuf::from(s), false); },
+			Argument::Path(s) => { settings.set_path(PathBuf::from(s), false)?; },
 
 			// Invalid/deprecated argument.
 			Argument::Other(s) => return Err(match s.as_str() {

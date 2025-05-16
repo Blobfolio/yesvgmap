@@ -70,11 +70,11 @@ description = "One or more file and/or directory paths to crunch and/or (recursi
 
 [build-dependencies]
 argyle = "=0.12.*"
-dowser = "=0.12.*"
+dowser = "=0.13.*"
 
 [dependencies]
 dactyl = "=0.10.*"
-dowser = "=0.12.*"
+dowser = "=0.13.*"
 fyi_ansi = "=2.0.*"
 svg = "=0.18.0"
 write_atomic = "=0.6.*"

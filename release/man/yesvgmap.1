@@ -1,6 +1,6 @@
-.TH "YESVGMAP" "1" "March 2025" "yesvgmap v0.6.0" "User Commands"
+.TH "YESVGMAP" "1" "May 2025" "yesvgmap v0.7.0" "User Commands"
 .SH NAME
-YESVGMAP \- Manual page for yesvgmap v0.6.0.
+YESVGMAP \- Manual page for yesvgmap v0.7.0.
 .SH DESCRIPTION
 Generate SVG sprite maps from individual SVG images.
 .SS USAGE:
@@ -11,26 +11,17 @@ yesvgmap [FLAGS] [OPTIONS] <PATH(s)…>
 \fB\-h\fR, \fB\-\-help\fR
 Print help information and exit.
 .TP
-\fB\-\-hidden\fR
-Hide the map using the 'hidden' HTML attribute. This takes priority over \-\-offscreen when both are present.
-.TP
-\fB\-\-offscreen\fR
-Hide the map using inline styles to position it offscreen.
-.TP
 \fB\-V\fR, \fB\-\-version\fR
 Print version information and exit.
 .SS OPTIONS:
 .TP
-\fB\-l\fR, \fB\-\-list\fR <FILE>
-Read (absolute) file and/or directory paths from this text file — or STDIN if '\-' — one entry per line, instead of or addition to (actually trailing) <PATH(S)>.
+\fB\-a\fR, \fB\-\-attribute\fR <KEY[=VAL]>
+Add an attribute — id, class, etc. — to the top\-level <svg> element.
 .TP
-\fB\-\-map\-class\fR <CLASS>
-Add this class to the generated SVG map. [default: ]
+\fB\-l\fR, \fB\-\-list\fR <PATH>
+Read (absolute) file and/or directory paths from this text file — or STDIN if '\-' — one entry per line, instead of or in addition to any trailing <PATH(S)>.
 .TP
-\fB\-\-map\-id\fR <ID>
-Add this ID to the generated SVG map. [default: ]
-.TP
-\fB\-o\fR, \fB\-\-output\fR <FILE>
+\fB\-o\fR, \fB\-\-output\fR <PATH>
 Save the generated map to this location. If omitted, the map will print to STDOUT instead.
 .TP
 \fB\-p\fR, \fB\-\-prefix\fR <PREFIX>

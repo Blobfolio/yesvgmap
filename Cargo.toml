@@ -75,7 +75,6 @@ dowser = "0.14.*"
 [dependencies]
 dactyl = "0.12.*"
 dowser = "0.14.*"
-fyi_ansi = "2.1.*"
 svg = "=0.18.0"
 write_atomic = "0.7.*"
 
@@ -84,7 +83,7 @@ version = "0.12.*"
 features = [ "try_paths" ]
 
 [dependencies.fyi_msg]
-version = "2.1.*"
+version = "2.2.*"
 features = [ "fitted" ]
 
 [profile.release]

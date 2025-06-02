@@ -69,12 +69,14 @@ use error::{
 	SvgError,
 	SvgErrorKind,
 };
-use fyi_ansi::{
-	bold,
-	csi,
-	dim,
+use fyi_msg::{
+	fyi_ansi::{
+		bold,
+		csi,
+		dim,
+	},
+	Msg,
 };
-use fyi_msg::Msg;
 use parse::{
 	normalize_attr_case,
 	SvgParser,

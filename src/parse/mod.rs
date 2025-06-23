@@ -112,6 +112,8 @@ impl<'a> Iterator for StyleSplitter<'a> {
 	}
 }
 
+impl std::iter::FusedIterator for StyleSplitter<'_> {}
+
 
 
 /// # SVG Parser Wrapper.
@@ -406,6 +408,8 @@ impl<'a> Iterator for SvgParser<'a> {
 		}
 	}
 }
+
+impl std::iter::FusedIterator for SvgParser<'_> {}
 
 
 

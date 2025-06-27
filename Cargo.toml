@@ -83,7 +83,7 @@ version = "0.13.*"
 features = [ "try_paths" ]
 
 [dependencies.fyi_msg]
-version = "2.2.*"
+version = "2.3.*"
 features = [ "fitted" ]
 
 [profile.release]

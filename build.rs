@@ -300,7 +300,7 @@ static TAGS: [&str; 74] = [
 /// # Build.
 ///
 /// We might as well pre-compile the CLI keys and extensions we're looking for.
-pub fn main() {
+fn main() {
 	println!("cargo:rerun-if-env-changed=CARGO_PKG_VERSION");
 
 	build_cli();

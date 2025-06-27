@@ -9,7 +9,7 @@ use crate::{
 	SvgParser,
 };
 use dowser::Dowser;
-use fyi_ansi::{
+use fyi_msg::fyi_ansi::{
 	ansi,
 	csi,
 	dim,

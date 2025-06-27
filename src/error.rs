@@ -2,12 +2,14 @@
 # Yesvgmap: Errors
 */
 
-use fyi_ansi::{
-	ansi,
-	csi,
-	dim,
+use fyi_msg::{
+	fyi_ansi::{
+		ansi,
+		csi,
+		dim,
+	},
+	Msg,
 };
-use fyi_msg::Msg;
 use std::{
 	error,
 	ffi::OsString,

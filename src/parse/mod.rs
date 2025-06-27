@@ -278,8 +278,8 @@ impl<'a> SvgParser<'a> {
 
 				// Tags with a new start require recursion.
 				SvgPart::Tag(tag, Type::Start, attr) =>
-					if let Some(next) = self.next_element_recurse(tag, attr) {
-						if ! is_empty(&next) { out.append(next); }
+					if let Some(next) = self.next_element_recurse(tag, attr) && ! is_empty(&next) {
+						out.append(next);
 					},
 
 				// Whatever else there might be, we're not interested.
@@ -467,17 +467,17 @@ fn normalize_attributes(attr: &mut Attributes) {
 	if let Some((tag, raw)) = attr.remove_entry("style") {
 		let mut chunks: Vec<&str> = StyleSplitter(&raw).collect();
 		chunks.retain(|v| {
-			if let Some((k2, v2)) = v.split_once(':') {
-				// If the style key matches a known attribute (other than
-				// display) convert it to an attribute.
-				if let Ok(k3) = normalize_attr_case(k2) {
-					if k3 != "display" {
-						attr.insert(k3.to_owned(), v2.trim().into());
-						return false;
-					}
-				}
+			// If the style key matches a known attribute (other than
+			// display) convert it to an attribute.
+			if
+				let Some((k2, v2)) = v.split_once(':') &&
+				let Ok(k3) = normalize_attr_case(k2) &&
+				k3 != "display"
+			{
+				attr.insert(k3.to_owned(), v2.trim().into());
+				false
 			}
-			true
+			else { true }
 		});
 
 		// Add back the style(s) we couldn't move.

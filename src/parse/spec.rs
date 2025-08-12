@@ -92,10 +92,11 @@ pub(crate) fn normalize_attr_case(needle: &str) -> Result<&'static str, &str> {
 
 	// Event attributes are uncommon but should be normalized too so we can
 	// more easily detect and complain about them later.
-	if matches!(needle.as_bytes(), [b'O' | b'o', b'N' | b'n', _, ..]) {
-		if let Some(better) = normalize_fallback(needle, ATTR_EVENT) {
-			return Ok(better);
-		}
+	if
+		matches!(needle.as_bytes(), [b'O' | b'o', b'N' | b'n', _, ..]) &&
+		let Some(better) = normalize_fallback(needle, ATTR_EVENT)
+	{
+		return Ok(better);
 	}
 
 	// Dunno.

@@ -6,7 +6,6 @@ use argyle::{
 	FlagsBuilder,
 	KeyWordsBuilder,
 };
-use dowser::Extension;
 use std::{
 	collections::BTreeSet,
 	fs::File,
@@ -306,13 +305,6 @@ fn main() {
 	build_cli();
 	build_flags();
 	build_spec();
-
-	// Extensions are easy for this one!.
-	let out = format!(
-		"/// # Extension: SVG.\nconst E_SVG: Extension = {};",
-		Extension::codegen(b"svg"),
-	);
-	write(&out_path("yesvgmap-extensions.rs"), out.as_bytes());
 }
 
 /// # Build CLI Keys.

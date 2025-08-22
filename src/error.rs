@@ -2,6 +2,8 @@
 # Yesvgmap: Errors
 */
 
+#![expect(clippy::doc_markdown, reason = "Auto-generated.")]
+
 use fyi_msg::{
 	fyi_ansi::{
 		ansi,

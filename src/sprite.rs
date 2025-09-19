@@ -119,7 +119,7 @@ impl SpriteOptions {
 	pub(crate) fn set_path(&mut self, path: PathBuf, list: bool)
 	-> Result<(), SvgError> {
 		if list {
-			self.paths.read_paths_from_file(&path)
+			self.paths.push_paths_from_file(&path)
 				.map_err(|_| (SvgErrorKind::Read, path).into())
 		}
 		else {

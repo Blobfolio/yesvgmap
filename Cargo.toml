@@ -1,6 +1,6 @@
 [package]
 name = "yesvgmap"
-version = "0.8.0"
+version = "0.8.1"
 license = "WTFPL"
 authors = ["Josh Stoik <josh@blobfolio.com>"]
 edition = "2024"
@@ -73,7 +73,7 @@ argyle = "0.13.*"
 
 [dependencies]
 dactyl = "0.13.*"
-dowser = "0.16.*"
+dowser = "0.17.*"
 svg = "=0.18.0"
 write_atomic = "0.7.*"
 
@@ -82,7 +82,7 @@ version = "0.13.*"
 features = [ "try_paths" ]
 
 [dependencies.fyi_msg]
-version = "2.3.*"
+version = "2.4.*"
 features = [ "fitted" ]
 
 [profile.release]

@@ -2,10 +2,7 @@
 # Yesvgmap: Build
 */
 
-use argyle::{
-	FlagsBuilder,
-	KeyWordsBuilder,
-};
+use argyle::FlagsBuilder;
 use std::{
 	collections::BTreeSet,
 	fs::File,
@@ -302,25 +299,8 @@ static TAGS: [&str; 74] = [
 fn main() {
 	println!("cargo:rerun-if-env-changed=CARGO_PKG_VERSION");
 
-	build_cli();
 	build_flags();
 	build_spec();
-}
-
-/// # Build CLI Keys.
-fn build_cli() {
-	let mut builder = KeyWordsBuilder::default();
-	builder.push_keys([
-		"-h", "--help",
-		"-V", "--version",
-	]);
-	builder.push_keys_with_values([
-		"-a", "--attribute",
-		"-l", "--list",
-		"-o", "--output",
-		"-p", "--prefix",
-	]);
-	builder.save(out_path("argyle.rs"));
 }
 
 /// # Build Flags.

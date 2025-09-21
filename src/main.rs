@@ -151,9 +151,9 @@ fn main__() -> Result<(), SvgError> {
 				else {
 					settings.set_attribute(s.trim(), None)?;
 				},
-			Argument::List(s) => {
-				settings.set_path(PathBuf::from(s), true)?;
-			},
+			Argument::List(s) =>
+				if s == "-" { settings.set_paths_from_stdin(); }
+				else { settings.set_path(PathBuf::from(s), true)?; },
 			Argument::Output(s) => {
 				let s = PathBuf::from(s);
 				if s.is_dir() || ! crate::valid_extension(&s) {

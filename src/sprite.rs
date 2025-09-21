@@ -128,6 +128,11 @@ impl SpriteOptions {
 		}
 	}
 
+	/// # Add Crawl Paths from STDIN.
+	pub(crate) fn set_paths_from_stdin(&mut self) {
+		self.paths.push_paths_from_stdin();
+	}
+
 	/// # Set Prefix.
 	///
 	/// Customize the `id` prefix used for sprite symbols, minus the trailing

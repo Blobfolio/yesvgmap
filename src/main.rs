@@ -24,6 +24,7 @@
 	clippy::format_push_string,
 	clippy::get_unwrap,
 	clippy::impl_trait_in_params,
+	clippy::implicit_clone,
 	clippy::lossy_float_literal,
 	clippy::missing_assert_message,
 	clippy::missing_docs_in_private_items,
@@ -33,7 +34,6 @@
 	clippy::rest_pat_in_fully_bound_structs,
 	clippy::semicolon_inside_block,
 	clippy::str_to_string,
-	clippy::string_to_string,
 	clippy::todo,
 	clippy::undocumented_unsafe_blocks,
 	clippy::unneeded_field_pattern,
@@ -61,7 +61,6 @@ mod sprite;
 
 
 
-use argyle::Argument;
 use dactyl::traits::NiceInflection;
 use dowser::Extension;
 use error::{
@@ -122,18 +121,28 @@ fn main() -> ExitCode {
 /// Do our work here so we can easily bubble up errors and handle them nice and
 /// pretty.
 fn main__() -> Result<(), SvgError> {
-	// Parse CLI arguments.
-	let args = argyle::args()
-		.with_keywords(include!(concat!(env!("OUT_DIR"), "/argyle.rs")));
+	argyle::argue! {
+		Help      "-h" "--help",
+		Version   "-V" "--version",
 
+		@options
+		Attribute "-a" "--attribute",
+		List      "-l" "--list",
+		Output    "-o" "--output",
+		Prefix    "-p" "--prefix",
+
+		@catchall-paths Path,
+	}
+
+	// Parse CLI arguments.
 	let mut settings = SpriteOptions::default();
 	let mut dst = None;
-	for arg in args {
+	for arg in Argument::args_os() {
 		match arg {
-			Argument::Key("-h" | "--help") => return Err(SvgErrorKind::PrintHelp.into()),
-			Argument::Key("-V" | "--version") => return Err(SvgErrorKind::PrintVersion.into()),
+			Argument::Help => return Err(SvgErrorKind::PrintHelp.into()),
+			Argument::Version => return Err(SvgErrorKind::PrintVersion.into()),
 
-			Argument::KeyWithValue("-a" | "--attribute", s) =>
+			Argument::Attribute(s) =>
 				// Key and value, maybe.
 				if let Some((a, b)) = s.split_once('=') {
 					settings.set_attribute(a, Some(b))?;
@@ -142,17 +151,17 @@ fn main__() -> Result<(), SvgError> {
 				else {
 					settings.set_attribute(s.trim(), None)?;
 				},
-			Argument::KeyWithValue("-l" | "--list", s) => {
-				settings.set_path(PathBuf::from(s), true)?;
-			},
-			Argument::KeyWithValue("-o" | "--output", s) => {
+			Argument::List(s) =>
+				if s == "-" { settings.set_paths_from_stdin(); }
+				else { settings.set_path(PathBuf::from(s), true)?; },
+			Argument::Output(s) => {
 				let s = PathBuf::from(s);
 				if s.is_dir() || ! crate::valid_extension(&s) {
 					return Err((SvgErrorKind::InvalidDst, s).into());
 				}
 				dst.replace(s);
 			},
-			Argument::KeyWithValue("-p" | "--prefix", s) => { settings.set_prefix(s)?; },
+			Argument::Prefix(s) => { settings.set_prefix(s)?; },
 
 			Argument::Path(s) => { settings.set_path(PathBuf::from(s), false)?; },
 
@@ -164,10 +173,7 @@ fn main__() -> Result<(), SvgError> {
 				"--map-id" => SvgErrorKind::DeprecatedMapId.into(),
 				_ => (SvgErrorKind::InvalidCli, s).into(),
 			}),
-			Argument::InvalidUtf8(s) => return Err((SvgErrorKind::InvalidCli, s).into()),
-
-			// Nothing else is relevant.
-			_ => {},
+			Argument::OtherOs(s) => return Err((SvgErrorKind::InvalidCli, s).into()),
 		}
 	}
 

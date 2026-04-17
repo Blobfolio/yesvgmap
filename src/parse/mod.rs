@@ -241,6 +241,7 @@ impl<'a> SvgParser<'a> {
 		}
 	}
 
+	#[expect(clippy::collapsible_match, reason = "For readability.")]
 	/// # Next Element (Recursive).
 	///
 	/// This method takes over from `next_element` when it encounters a
@@ -256,14 +257,9 @@ impl<'a> SvgParser<'a> {
 		while let Some(next) = self.next() {
 			match next {
 				// The end!
-				SvgPart::Tag(tag, Type::End, _) if tag == root_tag => {
+				SvgPart::Tag(tag, Type::End, _) => if tag == root_tag {
 					closed = true;
 					break;
-				},
-
-				// Text gets added if non-empty.
-				SvgPart::Text(v) => if ! v.is_empty() {
-					out.append(svg::node::Text::new(v));
 				},
 
 				// Empty tags can be added straight too.
@@ -281,6 +277,11 @@ impl<'a> SvgParser<'a> {
 					if let Some(next) = self.next_element_recurse(tag, attr) && ! is_empty(&next) {
 						out.append(next);
 					},
+
+				// Text gets added if non-empty.
+				SvgPart::Text(v) => if ! v.is_empty() {
+					out.append(svg::node::Text::new(v));
+				},
 
 				// Whatever else there might be, we're not interested.
 				_ => {},

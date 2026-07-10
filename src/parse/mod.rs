@@ -577,6 +577,7 @@ const fn trim_style(c: char) -> bool { c.is_whitespace() || c == ';' }
 #[cfg(test)]
 mod test {
 	use super::*;
+	use std::assert_matches;
 
 	#[test]
 	/// # Test `svg` Parser.
@@ -593,7 +594,7 @@ mod test {
 		assert_eq!(attr.get("style"), Some(&"fill : red ; foo:bar;".into()));
 
 		// All that's left is the closing tag.
-		assert!(matches!(parser.next(), Some(Event::Tag("SVG", Type::End, _))));
+		assert_matches!(parser.next(), Some(Event::Tag("SVG", Type::End, _)));
 		assert!(parser.next().is_none());
 	}
 
@@ -613,7 +614,7 @@ mod test {
 		assert_eq!(attr.get("style"), Some(&"foo:bar".into()));
 
 		// All that's left is the closing tag.
-		assert!(matches!(parser.next(), Some(SvgPart::Tag("svg", Type::End, _))));
+		assert_matches!(parser.next(), Some(SvgPart::Tag("svg", Type::End, _)));
 		assert!(parser.next().is_none());
 	}
 
@@ -731,8 +732,9 @@ mod test {
 			include_str!("../../test-assets/arrow-5.svg"),
 		] {
 			let mut parser = SvgParser::new(raw);
-			assert!(
-				matches!(parser.symbol("foo"), Err(SvgErrorKind::ParseScript)),
+			assert_matches!(
+				parser.symbol("foo"),
+				Err(SvgErrorKind::ParseScript),
 				"Scripts were not detected: {raw}",
 			);
 		}

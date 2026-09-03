@@ -76,7 +76,7 @@ argyle = "0.15.*"
 dactyl = "0.13.*"
 dowser = "0.18.*"
 svg = "=0.18.0"
-write_atomic = "0.7.*"
+write_atomic = "0.9.*"
 
 [dependencies.fyi_msg]
 version = "2.7.*"

@@ -73,7 +73,7 @@ argyle = "0.16.*"
 
 [dependencies]
 argyle = "0.16.*"
-dactyl = "0.13.*"
+dactyl = "0.14.*"
 dowser = "0.18.*"
 svg = "=0.18.0"
 write_atomic = "0.9.*"
